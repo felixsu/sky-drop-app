@@ -27,9 +27,10 @@
 
                 <ImageView
                     android:id="@+id/imageViewWeather"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:src="@drawable/ic_sunny"/>
+                    android:layout_width="160dp"
+                    android:layout_height="160dp"
+                    android:adjustViewBounds="true"
+                    android:src="@drawable/ic_weather_sunny"/>
 
                 <RelativeLayout
                     android:layout_width="wrap_content"
@@ -44,8 +45,8 @@
                         android:layout_height="wrap_content"
                         android:layout_alignParentTop="true"
                         android:paddingLeft="8dp"
-                        android:textSize="48sp"
-                        tools:text="04:35"/>
+                        android:textSize="36sp"
+                        tools:text="04:35 AM"/>
 
                     <TextView
                         android:id="@+id/labelTemperature"
@@ -58,11 +59,11 @@
 
                     <ImageView
                         android:id="@+id/imageViewDegree"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
+                        android:layout_width="24dp"
+                        android:layout_height="24dp"
                         android:layout_alignTop="@id/labelTemperature"
                         android:layout_toRightOf="@id/labelTemperature"
-                        android:src="@drawable/degree"
+                        android:src="@drawable/ic_degree"
                         />
 
                     <TextView

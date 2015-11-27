@@ -3,9 +3,7 @@ package felix.com.skydrop.fragment;
 
 import android.app.Activity;
 import android.content.Context;
-import android.content.Intent;
 import android.graphics.Color;
-import android.location.Location;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.Bundle;
@@ -20,10 +18,6 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.google.android.gms.common.ConnectionResult;
-import com.google.android.gms.common.GooglePlayServicesUtil;
-import com.google.android.gms.common.api.GoogleApiClient;
-import com.google.android.gms.location.LocationServices;
 import com.squareup.okhttp.Call;
 import com.squareup.okhttp.Callback;
 import com.squareup.okhttp.OkHttpClient;
@@ -35,27 +29,29 @@ import org.json.JSONException;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.Locale;
 
 import butterknife.Bind;
 import butterknife.ButterKnife;
 import felix.com.skydrop.R;
 import felix.com.skydrop.constant.ForecastConstant;
+import felix.com.skydrop.factory.CurrentWeatherFactory;
+import felix.com.skydrop.model.CurrentWeather;
+import felix.com.skydrop.util.ForecastConverter;
 
 /**
  * Created by fsoewito on 11/24/2015.
- *
  */
 public class CurrentFragment extends Fragment
-        implements SwipeRefreshLayout.OnRefreshListener, GoogleApiClient.ConnectionCallbacks,
-        GoogleApiClient.OnConnectionFailedListener, ForecastConstant{
+        implements SwipeRefreshLayout.OnRefreshListener, ForecastConstant {
     private static final String TAG = CurrentFragment.class.getSimpleName();
     private static int REQUEST_CODE_RECOVER_PLAY_SERVICES = 200;
     private static final String TIME_FORMAT = "HH:mm";
 
     double mLatitude = -6.215117;
     double mLongitude = 106.824896;
-    private Location mLocation;
-    private GoogleApiClient mGoogleApiClient;
+
+    CurrentWeather mCurrentWeather;
 
     //root view
     Activity mActivity;
@@ -98,28 +94,13 @@ public class CurrentFragment extends Fragment
     @Bind(R.id.labelWindDirection)
     TextView mWindDirectionLabel;
 
-    @Override
-    public void onCreate(@Nullable Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        mActivity = getActivity();
-        if (checkGooglePlayServices()){
-            buildGoogleApiClient();
-        }
-    }
-
-    protected synchronized void buildGoogleApiClient() {
-        mGoogleApiClient = new GoogleApiClient.Builder(getActivity())
-                .addConnectionCallbacks(this)
-                .addOnConnectionFailedListener(this)
-                .addApi(LocationServices.API)
-                .build();
-    }
 
     @Nullable
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         mLayout = inflater.inflate(R.layout.layout_current_weather, container, false);
         ButterKnife.bind(this, mLayout);
+        initView();
         initData();
         return mLayout;
     }
@@ -128,13 +109,17 @@ public class CurrentFragment extends Fragment
     public void onRefresh() {
         Log.i(TAG, "on refresh called");
         getForecast(mLatitude, mLongitude);
-        mRefreshLayout.setRefreshing(false);
     }
 
-    protected void initData(){
+    protected void initData() {
+        mCurrentWeather = CurrentWeatherFactory.getInstance();
+        mActivity = getActivity();
+    }
+
+    protected void initView() {
         mTemperatureLabel.setText("--");
-        mIconWeather.setImageResource(R.drawable.ic_sunny);
-        mTimeLabel.setText(getTime());
+        mIconWeather.setImageResource(R.drawable.ic_weather_sunny);
+        mTimeLabel.setText(new SimpleDateFormat(TIME_FORMAT).format(new Date()));
         mSummaryLabel.setText("-");
         mRealFeelLabel.setText("--");
 
@@ -148,60 +133,26 @@ public class CurrentFragment extends Fragment
 
         mRefreshLayout.setOnRefreshListener(this);
         mRefreshLayout.setColorSchemeColors(Color.BLUE, Color.YELLOW, Color.RED, Color.GREEN);
-
     }
 
-    private boolean checkGooglePlayServices() {
-        int checkGooglePlayServices = GooglePlayServicesUtil
-                .isGooglePlayServicesAvailable(getActivity());
-        if (checkGooglePlayServices != ConnectionResult.SUCCESS) {
-            GooglePlayServicesUtil.getErrorDialog(checkGooglePlayServices,
-                    getActivity(), REQUEST_CODE_RECOVER_PLAY_SERVICES).show();
-            return false;
-        }
-        return true;
+    protected void updateDisplay(CurrentWeather currentWeather){
+        mTemperatureLabel.setText(ForecastConverter.getString(currentWeather.getTemperature(), true));
+        mIconWeather.setImageResource(ForecastConverter.getIcon(currentWeather.getIcon()));
+        mTimeLabel.setText(ForecastConverter.getString(currentWeather.getTime(), currentWeather.getTimezone()));
+        mSummaryLabel.setText(currentWeather.getSummary());
+        mRealFeelLabel.setText(ForecastConverter.getString(currentWeather.getApparentTemperature(), true));
+        mLabelTodaySummary.setText(currentWeather.getTodaySummary());
+        //todo get uv index or remove it :(
+        mHumidityLabel.setText(ForecastConverter.getString(currentWeather.getHumidity(), true));
+        mPrecipitationLabel.setText(ForecastConverter.getString(currentWeather.getPrecipProbability(), true));
+        mWindLabel.setText(ForecastConverter.getString(currentWeather.getWindSpeed(), false));
+        mWindDirectionLabel.setText(ForecastConverter.getString(currentWeather.getWindDirection(), true));
     }
 
-    private String getTime(){
-        return new SimpleDateFormat(TIME_FORMAT).format(new Date());
-    }
-
-    private void getForecast(double latitude, double longitude) {
-        if (isNetworkAvailable()) {
-            OkHttpClient client = new OkHttpClient();
-            Request request = new Request.Builder().
-                    url(String.format("%s/%s/%04f,%04f", url, apiKey, latitude, longitude)).
-                    build();
-            Call call = client.newCall(request);
-            call.enqueue(new Callback() {
-                @Override
-                public void onFailure(Request request, IOException e) {
-                    alertUserAboutError();
-                }
-
-                @Override
-                public void onResponse(Response response) throws IOException {
-                    try {
-                        String jsonData = response.body().string();
-                        Log.v(TAG, response.body().string());
-                        if (response.isSuccessful()) {
-
-                        } else {
-                            alertUserAboutError();
-                        }
-                    } catch (IOException e) {
-                        Log.e(TAG, "Exception caught", e);
-                    }
-                }
-            });
-        } else {
-            Toast.makeText(getActivity(), "Network not available", Toast.LENGTH_LONG).show();
-        }
-    }
-
+    //etc
     private void alertUserAboutError() {
         AlertDialogFragment dialogFragment = new AlertDialogFragment();
-        dialogFragment.show(getFragmentManager(), "error_dialog");
+        dialogFragment.show(mActivity.getFragmentManager(), "error_dialog");
     }
 
     private boolean isNetworkAvailable() {
@@ -215,18 +166,45 @@ public class CurrentFragment extends Fragment
         return isAvailable;
     }
 
-    @Override
-    public void onConnected(Bundle bundle) {
+    private void getForecast(double latitude, double longitude) {
+        if (isNetworkAvailable()) {
+            OkHttpClient client = new OkHttpClient();
+            Request request = new Request.Builder().
+                    url(String.format("%s/%s/%04f,%04f?units=si", url, apiKey, latitude, longitude)).
+                    build();
+            Call call = client.newCall(request);
+            call.enqueue(new Callback() {
+                @Override
+                public void onFailure(Request request, IOException e) {
+                    alertUserAboutError();
+                }
 
-    }
-
-    @Override
-    public void onConnectionSuspended(int i) {
-
-    }
-
-    @Override
-    public void onConnectionFailed(ConnectionResult connectionResult) {
-
+                @Override
+                public void onResponse(Response response) {
+                    try {
+                        String jsonData = response.body().string();
+                        Log.v(TAG, response.body().string());
+                        if (response.isSuccessful()) {
+                            mCurrentWeather.getFromJson(jsonData);
+                            mActivity.runOnUiThread(new Runnable() {
+                                @Override
+                                public void run() {
+                                    updateDisplay(mCurrentWeather);
+                                    mRefreshLayout.setRefreshing(false);
+                                }
+                            });
+                        } else {
+                            alertUserAboutError();
+                        }
+                    } catch (IOException e) {
+                        Log.e(TAG, "Exception caught", e);
+                    } catch (JSONException e) {
+                        Log.e(TAG, "JSON exception caught", e);
+                    }
+                }
+            });
+        } else {
+            Toast.makeText(mActivity, "Network not available", Toast.LENGTH_LONG).show();
+        }
     }
 }

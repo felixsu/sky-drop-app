@@ -2,9 +2,9 @@ package felix.com.skydrop.fragment;
 
 import android.app.AlertDialog;
 import android.app.Dialog;
+import android.app.DialogFragment;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
-import android.support.v4.app.DialogFragment;
 
 import felix.com.skydrop.R;
 
