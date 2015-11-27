@@ -84,7 +84,6 @@ public class MainActivity extends AppCompatActivity
         fragmentTransaction.add(R.id.fragmentContainer, currentFragment);
         fragmentTransaction.commit();
     }
-
     private void initField(){
 
     }

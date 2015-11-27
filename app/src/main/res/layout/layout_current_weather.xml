@@ -2,15 +2,17 @@
 <android.support.v4.widget.SwipeRefreshLayout
     android:id="@+id/layout_current_weather"
     xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:background="@color/white">
+    android:layout_height="wrap_content"
+    android:background="@color/greyWhiteDark">
 
     <ScrollView
         android:id="@+id/scrollViewContainer"
         android:layout_width="match_parent"
-        android:layout_height="match_parent">
+        android:layout_height="wrap_content"
+        app:paddingEnd="@dimen/activity_vertical_margin">
 
         <RelativeLayout
             android:layout_width="match_parent"
@@ -18,187 +20,267 @@
             android:layout_marginBottom="@dimen/activity_vertical_margin"
             android:layout_marginLeft="@dimen/activity_horizontal_margin"
             android:layout_marginRight="@dimen/activity_horizontal_margin"
-            android:layout_marginTop="@dimen/activity_vertical_margin">
+            android:layout_marginTop="@dimen/activity_vertical_margin"
+            android:background="@color/greyWhiteDark">
 
             <RelativeLayout
-                android:id="@+id/headerContainer"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content">
-
-                <ImageView
-                    android:id="@+id/imageViewWeather"
-                    android:layout_width="160dp"
-                    android:layout_height="160dp"
-                    android:adjustViewBounds="true"
-                    android:src="@drawable/ic_weather_sunny"/>
-
-                <RelativeLayout
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_alignBottom="@id/imageViewWeather"
-                    android:layout_alignTop="@id/imageViewWeather"
-                    android:layout_toRightOf="@id/imageViewWeather">
-
-                    <TextView
-                        android:id="@+id/labelTime"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_alignParentTop="true"
-                        android:paddingLeft="8dp"
-                        android:textSize="36sp"
-                        tools:text="04:35 AM"/>
-
-                    <TextView
-                        android:id="@+id/labelTemperature"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_below="@id/labelTime"
-                        android:paddingLeft="8dp"
-                        android:textSize="64sp"
-                        tools:text="39"/>
-
-                    <ImageView
-                        android:id="@+id/imageViewDegree"
-                        android:layout_width="24dp"
-                        android:layout_height="24dp"
-                        android:layout_alignTop="@id/labelTemperature"
-                        android:layout_toRightOf="@id/labelTemperature"
-                        android:src="@drawable/ic_degree"
-                        />
-
-                    <TextView
-                        android:id="@+id/labelSummary"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_below="@id/labelTemperature"
-                        android:paddingLeft="8dp"
-                        tools:text="Mostly Cloudy"/>
-
-                    <TextView
-                        android:id="@+id/labelRealFeel"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_alignParentBottom="true"
-                        android:paddingLeft="8dp"
-                        android:text="Real Feel %d"
-                        tools:text="Real Feel : 39"/>
-                </RelativeLayout>
-
-                <TextView
-                    android:paddingTop="@dimen/activity_vertical_margin"
-                    android:id="@+id/labelTodaySummary"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_below="@+id/imageViewWeather"
-                    tools:text="clear day, enjoy your day"/>
-            </RelativeLayout>
-
-            <RelativeLayout
-                android:id="@+id/parameterContainer"
+                android:id="@+id/cardContainer"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_below="@id/headerContainer"
-                android:layout_marginTop="@dimen/activity_vertical_margin"
-                >
+                android:background="@drawable/shape_card"
+                android:foreground="?android:attr/selectableItemBackground"
+                android:translationZ="4dp">
 
-                <TextView
-                    android:id="@+id/labelAdditionalParameter"
-                    android:paddingBottom="@dimen/activity_vertical_margin"
+                <RelativeLayout
+                    android:id="@+id/headerContainer"
                     android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:text="Additional Parameter"
-                    android:textSize="21sp"/>
+                    android:layout_height="match_parent"
+                    android:layout_marginBottom="@dimen/activity_vertical_margin"
+                    android:layout_marginLeft="@dimen/activity_horizontal_margin"
+                    android:layout_marginRight="@dimen/activity_horizontal_margin"
+                    android:layout_marginTop="@dimen/activity_vertical_margin">
 
+                    <ImageView
+                        android:id="@+id/imageViewWeather"
+                        android:layout_width="160dp"
+                        android:layout_height="176dp"
+                        android:adjustViewBounds="true"
+                        android:contentDescription="weather icon"
+                        android:src="@drawable/ic_weather_sunny"/>
 
-                <TextView
-                    android:id="@+id/labelUvIndexTitle"
-                    android:layout_width="120dp"
-                    android:layout_height="wrap_content"
-                    android:layout_below="@id/labelAdditionalParameter"
-                    android:text="UV Index"/>
+                    <RelativeLayout
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_alignBottom="@id/imageViewWeather"
+                        android:layout_alignTop="@id/imageViewWeather"
+                        android:layout_toRightOf="@id/imageViewWeather">
 
-                <TextView
-                    android:id="@+id/labelHumidityTitle"
-                    android:layout_width="120dp"
-                    android:layout_height="wrap_content"
-                    android:layout_below="@id/labelUvIndexTitle"
-                    android:text="Humidity"/>
+                        <TextView
+                            android:id="@+id/labelTime"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_alignParentTop="true"
+                            android:paddingLeft="8dp"
+                            android:textSize="36sp"
+                            tools:text="04:35"/>
 
-                <TextView
-                    android:id="@+id/labelPrecipitationTitle"
-                    android:layout_width="120dp"
-                    android:layout_height="wrap_content"
-                    android:layout_below="@id/labelHumidityTitle"
-                    android:text="Precipitation"/>
+                        <TextView
+                            android:id="@+id/labelTimeProperties"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_alignParentRight="true"
+                            android:layout_alignTop="@id/labelTime"
+                            android:layout_toRightOf="@id/labelTime"
+                            android:paddingLeft="8dp"
+                            android:paddingTop="4dp"
+                            android:textSize="18sp"
+                            tools:text="AM"/>
 
-                <TextView
-                    android:id="@+id/labelUvIndex"
-                    android:layout_width="80dp"
-                    android:layout_height="wrap_content"
-                    android:layout_below="@id/labelAdditionalParameter"
-                    android:layout_toRightOf="@id/labelUvIndexTitle"
-                    tools:text="Low"/>
+                        <TextView
+                            android:id="@+id/labelTemperature"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_below="@id/labelTime"
+                            android:paddingLeft="8dp"
+                            android:paddingTop="4dp"
+                            android:textSize="64sp"
+                            tools:text="39"/>
 
-                <TextView
-                    android:id="@+id/labelHumidity"
-                    android:layout_width="80dp"
-                    android:layout_height="wrap_content"
-                    android:layout_below="@id/labelUvIndex"
-                    android:layout_toRightOf="@id/labelHumidityTitle"
-                    tools:text="70%"/>
+                        <ImageView
+                            android:id="@+id/imageViewDegree"
+                            android:layout_width="32dp"
+                            android:layout_height="32dp"
+                            android:layout_alignTop="@id/labelTemperature"
+                            android:layout_toRightOf="@id/labelTemperature"
+                            android:src="@drawable/ic_degree"
+                            />
 
-                <TextView
-                    android:id="@+id/labelPrecipitation"
-                    android:layout_width="80dp"
-                    android:layout_height="wrap_content"
-                    android:layout_below="@id/labelHumidity"
-                    android:layout_toRightOf="@id/labelPrecipitationTitle"
-                    tools:text="0.6"/>
+                        <TextView
+                            android:id="@+id/labelSummary"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_below="@id/labelTemperature"
+                            android:paddingLeft="8dp"
+                            tools:text="Mostly Cloudy"/>
 
-                <TextView
-                    android:id="@+id/labelWindTitle"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_alignParentRight="true"
-                    android:layout_below="@id/labelAdditionalParameter"
-                    android:layout_toRightOf="@+id/labelUvIndex"
-                    android:text="Wind"/>
+                        <TextView
+                            android:id="@+id/labelRealFeel"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_alignParentBottom="true"
+                            android:paddingLeft="8dp"
+                            android:text="Real Feel %d"
+                            tools:text="Real Feel : 39"/>
+                    </RelativeLayout>
 
-                <TextView
-                    android:id="@+id/labelWindDirection"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_alignParentRight="true"
-                    android:layout_below="@id/labelWindTitle"
-                    tools:text="SSE"/>
-
-                <TextView
-                    android:id="@+id/labelWindSpeed"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_alignParentRight="true"
-                    android:layout_below="@id/labelWindDirection"
-                    tools:text="9 mph"/>
-
-                <TextView
-                    android:id="@+id/labelWindDirectionTitle"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_below="@id/labelWindTitle"
-                    android:layout_toLeftOf="@id/labelWindDirection"
-                    android:layout_toRightOf="@+id/labelHumidity"
-                    android:text="Direction"/>
-
-                <TextView
-                    android:id="@+id/labelWindSpeedTitle"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_below="@id/labelWindDirectionTitle"
-                    android:layout_toLeftOf="@id/labelWindSpeed"
-                    android:layout_toRightOf="@+id/labelPrecipitation"
-                    android:text="Speed"/>
+                    <TextView
+                        android:id="@+id/labelTodaySummary"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_below="@+id/imageViewWeather"
+                        android:gravity="top"
+                        android:lineSpacingMultiplier="1.2"
+                        android:maxLines="2"
+                        android:paddingTop="@dimen/activity_vertical_margin"
+                        tools:text="clear day, enjoy your day"/>
+                </RelativeLayout>
 
             </RelativeLayout>
+
+            <RelativeLayout
+                android:id="@+id/cardContainer2"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_below="@id/cardContainer"
+                android:layout_marginTop="@dimen/activity_vertical_margin"
+                android:background="@drawable/shape_card"
+                android:translationZ="4dp">
+
+                <RelativeLayout
+                    android:id="@+id/parameterContainer"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="@dimen/activity_vertical_margin"
+                    android:layout_marginLeft="@dimen/activity_horizontal_margin"
+                    android:layout_marginRight="@dimen/activity_horizontal_margin"
+                    android:layout_marginTop="@dimen/activity_vertical_margin">
+
+                    <TextView
+                        android:id="@+id/labelAdditionalParameter"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:paddingBottom="@dimen/activity_vertical_margin"
+                        android:text="Additional Parameter"
+                        android:textSize="@dimen/titleCard"
+                        android:textStyle="bold"/>
+
+
+                    <TextView
+                        android:id="@+id/labelUvIndexTitle"
+                        android:layout_width="112dp"
+                        android:layout_height="wrap_content"
+                        android:layout_below="@id/labelAdditionalParameter"
+                        android:text="UV Index"/>
+
+                    <TextView
+                        android:id="@+id/labelHumidityTitle"
+                        android:layout_width="112dp"
+                        android:layout_height="wrap_content"
+                        android:layout_below="@id/labelUvIndexTitle"
+                        android:text="Humidity"/>
+
+                    <TextView
+                        android:id="@+id/labelPrecipitationTitle"
+                        android:layout_width="112dp"
+                        android:layout_height="wrap_content"
+                        android:layout_below="@id/labelHumidityTitle"
+                        android:text="Precipitation"/>
+
+                    <TextView
+                        android:id="@+id/labelUvIndex"
+                        android:layout_width="48dp"
+                        android:layout_height="wrap_content"
+                        android:layout_below="@id/labelAdditionalParameter"
+                        android:layout_toRightOf="@id/labelUvIndexTitle"
+                        tools:text="Low"/>
+
+                    <TextView
+                        android:id="@+id/labelHumidity"
+                        android:layout_width="48dp"
+                        android:layout_height="wrap_content"
+                        android:layout_below="@id/labelUvIndex"
+                        android:layout_toRightOf="@id/labelHumidityTitle"
+                        tools:text="70%"/>
+
+                    <TextView
+                        android:id="@+id/labelPrecipitation"
+                        android:layout_width="48dp"
+                        android:layout_height="wrap_content"
+                        android:layout_below="@id/labelHumidity"
+                        android:layout_toRightOf="@id/labelPrecipitationTitle"
+                        tools:text="0.6"/>
+
+                    <TextView
+                        android:id="@+id/labelWindTitle"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_alignParentRight="true"
+                        android:layout_below="@id/labelAdditionalParameter"
+                        android:layout_toRightOf="@+id/labelUvIndex"
+                        android:text="Wind"/>
+
+                    <TextView
+                        android:id="@+id/labelWindDirection"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_alignParentRight="true"
+                        android:layout_below="@id/labelWindTitle"
+                        tools:text="SSE"/>
+
+                    <TextView
+                        android:id="@+id/labelWindSpeed"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_alignParentRight="true"
+                        android:layout_below="@id/labelWindDirection"
+                        tools:text="9 mps"/>
+
+                    <TextView
+                        android:id="@+id/labelWindDirectionTitle"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_below="@id/labelWindTitle"
+                        android:layout_toLeftOf="@id/labelWindDirection"
+                        android:layout_toRightOf="@+id/labelHumidity"
+                        android:text="Direction"/>
+
+                    <TextView
+                        android:id="@+id/labelWindSpeedTitle"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_below="@id/labelWindDirectionTitle"
+                        android:layout_toLeftOf="@id/labelWindSpeed"
+                        android:layout_toRightOf="@+id/labelPrecipitation"
+                        android:text="Speed"/>
+                </RelativeLayout>
+            </RelativeLayout>
+
+            <RelativeLayout
+                android:id="@+id/cardContainer3"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_below="@id/cardContainer2"
+                android:layout_marginBottom="@dimen/activity_vertical_margin"
+                android:layout_marginTop="@dimen/activity_vertical_margin"
+                android:background="@drawable/shape_card"
+                android:translationZ="4dp">
+
+                <RelativeLayout
+                    android:id="@+id/chartContainer"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="@dimen/activity_vertical_margin"
+                    android:layout_marginLeft="@dimen/activity_horizontal_margin"
+                    android:layout_marginRight="@dimen/activity_horizontal_margin"
+                    android:layout_marginTop="@dimen/activity_vertical_margin">
+
+                    <TextView
+                        android:id="@+id/labelGraphView"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:paddingBottom="@dimen/activity_vertical_margin"
+                        android:text="Hourly Forecast"
+                        android:textSize="@dimen/titleCard"
+                        android:textStyle="bold"/>
+
+                    <com.jjoe64.graphview.GraphView
+                        android:id="@+id/graphHourly"
+                        android:layout_width="match_parent"
+                        android:layout_height="136dp"
+                        android:layout_below="@id/labelGraphView"/>
+                </RelativeLayout>
+            </RelativeLayout>
+
 
         </RelativeLayout>
     </ScrollView>

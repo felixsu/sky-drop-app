@@ -14,5 +14,4 @@
     tools:context="felix.com.skydrop.activity.MainActivity"
     tools:showIn="@layout/app_bar_main"
     android:name="felix.com.skydrop.fragment.CurrentFragment">
-
 </fragment>
