@@ -9,6 +9,7 @@ public class CurrentWeatherFactory {
 
     public static CurrentWeather getInstance(){
         CurrentWeather currentWeather = new CurrentWeather();
+        currentWeather.setInitialized(false);
         currentWeather.setTodaySummary("none");
         currentWeather.setIcon("clear-day");
         currentWeather.setSummary("none");

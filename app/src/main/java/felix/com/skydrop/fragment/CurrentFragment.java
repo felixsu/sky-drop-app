@@ -3,9 +3,11 @@ package felix.com.skydrop.fragment;
 
 import android.app.Activity;
 import android.content.Context;
-import android.graphics.Color;
+import android.content.SharedPreferences;
 import android.graphics.ColorFilter;
+import android.graphics.DashPathEffect;
 import android.graphics.LightingColorFilter;
+import android.graphics.Paint;
 import android.graphics.drawable.Drawable;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
@@ -23,6 +25,9 @@ import android.widget.Toast;
 
 import com.jjoe64.graphview.GraphView;
 import com.jjoe64.graphview.GridLabelRenderer;
+import com.jjoe64.graphview.GridLabelRenderer.GridStyle;
+import com.jjoe64.graphview.LegendRenderer;
+import com.jjoe64.graphview.Viewport;
 import com.jjoe64.graphview.series.DataPoint;
 import com.jjoe64.graphview.series.LineGraphSeries;
 import com.squareup.okhttp.Call;
@@ -34,20 +39,23 @@ import com.squareup.okhttp.Response;
 import org.json.JSONException;
 
 import java.io.IOException;
+import java.text.SimpleDateFormat;
 
 import butterknife.Bind;
 import butterknife.ButterKnife;
 import felix.com.skydrop.R;
+import felix.com.skydrop.constant.Color;
 import felix.com.skydrop.constant.ForecastConstant;
 import felix.com.skydrop.factory.CurrentWeatherFactory;
 import felix.com.skydrop.model.CurrentWeather;
+import felix.com.skydrop.model.HourlyForecast;
 import felix.com.skydrop.util.ForecastConverter;
 
 /**
  * Created by fsoewito on 11/24/2015.
  */
 public class CurrentFragment extends Fragment
-        implements SwipeRefreshLayout.OnRefreshListener, ForecastConstant {
+        implements SwipeRefreshLayout.OnRefreshListener, ForecastConstant, Color {
     private static final String TAG = CurrentFragment.class.getSimpleName();
 
     double mLatitude = -6.215117;
@@ -104,6 +112,9 @@ public class CurrentFragment extends Fragment
     @Bind(R.id.graphHourly)
     GraphView mGraphView;
 
+    @Bind(R.id.labelGraphViewEmpty)
+    TextView mGraphViewEmptyLabel;
+
 
     @Nullable
     @Override
@@ -116,6 +127,27 @@ public class CurrentFragment extends Fragment
     }
 
     @Override
+    public void onStart() {
+        super.onStart();
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+        if (mCurrentWeather.isInitialized()) {
+            SharedPreferences preferences = mActivity.getSharedPreferences(FORECAST_PREFERENCES, Context.MODE_PRIVATE);
+            SharedPreferences.Editor preferencesEditor = preferences.edit();
+            storePref(preferencesEditor);
+        }
+    }
+
+    private void storePref(SharedPreferences.Editor preferencesEditor) {
+        preferencesEditor.putBoolean(KEY_IS_INIT, true);
+        preferencesEditor.putString(KEY_CURRENT_WEATHER, mCurrentWeather.toJson());
+        preferencesEditor.commit();
+    }
+
+    @Override
     public void onRefresh() {
         Log.i(TAG, "on refresh called");
         getForecast(mLatitude, mLongitude);
@@ -124,87 +156,127 @@ public class CurrentFragment extends Fragment
     protected void initData() {
         mCurrentWeather = CurrentWeatherFactory.getInstance();
         mActivity = getActivity();
-
-        DataPoint[] hourlyTemp = new DataPoint[6];
-        DataPoint[] hourlyApparentTemp = new DataPoint[6];
-        for(int i = 0; i< hourlyTemp.length; i++){
-            if (i%2 == 0) {
-                hourlyTemp[i] = new DataPoint(i, 29);
-                hourlyApparentTemp[i] = new DataPoint(i, 33);
-            }else{
-                hourlyTemp[i] = new DataPoint(i, 31);
-                hourlyApparentTemp[i] = new DataPoint(i, 35);
+        SharedPreferences preferences = mActivity.getSharedPreferences(FORECAST_PREFERENCES, Context.MODE_PRIVATE);
+        if (preferences.getBoolean(KEY_IS_INIT, false)) {
+            try {
+                mCurrentWeather.getFromJson(preferences.getString(KEY_CURRENT_WEATHER, ""));
+            } catch (JSONException e) {
+                e.printStackTrace();
             }
         }
-        mHourlyTempSeries = new LineGraphSeries<>(hourlyTemp);
-        mHourlyApparentTempSeries = new LineGraphSeries<>(hourlyApparentTemp);
     }
 
     protected void initView() {
-        mTemperatureLabel.setText("--");
-        mIconWeather.setImageResource(R.drawable.ic_weather_sunny);
-        mTimeLabel.setText("--");
-        mTimeLabelProperties.setText("AM");
-        mSummaryLabel.setText("-");
-        mRealFeelLabel.setText("--");
-
-        mLabelTodaySummary.setText("please refresh.....");
-
-        mUvIndexLabel.setText(String.valueOf(0));
-        mHumidityLabel.setText(String.valueOf(0));
-        mPrecipitationLabel.setText(String.format("%d %%", 0));
-        mWindLabel.setText(String.format("%d mps", 0));
-        mWindDirectionLabel.setText("-");
-
+        updateDisplay(mCurrentWeather);
         mRefreshLayout.setOnRefreshListener(this);
-        mRefreshLayout.setColorSchemeColors(Color.BLUE, Color.YELLOW, Color.RED, Color.GREEN);
-        initGraph();
+        mRefreshLayout.setColorSchemeColors(RED, BLUE, YELLOW, GREEN);
     }
 
-    private void initGraph(){
-        mHourlyApparentTempSeries.setColor(0xFF303F9F);
+    private void initGraph() {
+        mGraphView.removeAllSeries();
+
+        Paint paint = new Paint();
+        paint.setStyle(Paint.Style.STROKE);
+        paint.setStrokeWidth(10);
+        paint.setPathEffect(new DashPathEffect(new float[]{8, 5}, 0));
+
+        mHourlyApparentTempSeries.setColor(0xFF3F51B5);
         mHourlyApparentTempSeries.setThickness(12);
         mHourlyApparentTempSeries.setDrawDataPoints(true);
-        mHourlyApparentTempSeries.setDataPointsRadius(15f);
+        mHourlyApparentTempSeries.setDataPointsRadius(12f);
+        mHourlyApparentTempSeries.setCustomPaint(paint);
+        mHourlyApparentTempSeries.setTitle("Real Feel");
 
-        mHourlyTempSeries.setColor(0xFF3F51B5);
-        mHourlyTempSeries.setThickness(15);
+        mHourlyTempSeries.setColor(0xFFFF4081);
+        mHourlyTempSeries.setThickness(12);
         mHourlyTempSeries.setDrawDataPoints(true);
-        mHourlyTempSeries.setDataPointsRadius(20f);
+        mHourlyTempSeries.setDataPointsRadius(12f);
+        mHourlyTempSeries.setTitle("Actual");
 
         GridLabelRenderer gridRenderer = mGraphView.getGridLabelRenderer();
+        gridRenderer.setGridStyle(GridStyle.HORIZONTAL);
+        gridRenderer.setGridColor(R.color.greyWhiteMedium);
+        gridRenderer.setNumHorizontalLabels(6);
+        gridRenderer.setNumVerticalLabels(4);
+        gridRenderer.setHighlightZeroLines(true);
+
+        Viewport viewport = mGraphView.getViewport();
+        viewport.setMaxY(35);
+        viewport.setMinY(20);
+        viewport.setYAxisBoundsManual(true);
+
         mGraphView.addSeries(mHourlyTempSeries);
         mGraphView.addSeries(mHourlyApparentTempSeries);
         mGraphView.setScaleX(1);
         mGraphView.setScaleY(1);
+        mGraphView.setTitle("Temperature");
+        mGraphView.getLegendRenderer().setVisible(true);
+        mGraphView.getLegendRenderer().setAlign(LegendRenderer.LegendAlign.TOP);
+        mGraphView.getLegendRenderer().setBackgroundColor(android.R.color.transparent);
+        mGraphView.getLegendRenderer().setTextColor(R.color.greyWhiteDark);
     }
 
     protected void updateDisplay(CurrentWeather currentWeather) {
-        ColorFilter filter = new LightingColorFilter(Color.BLACK, 0xFF3F51B5);
+        ColorFilter filter = new LightingColorFilter(BLACK, 0xFF3F51B5);
         Drawable drawable = mActivity.getDrawable(ForecastConverter.getIcon(currentWeather.getIcon()));
         if (drawable != null) {
             drawable.setColorFilter(filter);
         }
-        mIconWeather.setImageDrawable(drawable);
-        mTemperatureLabel.setText(ForecastConverter.getString(currentWeather.getTemperature(), true, false));
 
-        String time = ForecastConverter.getString(currentWeather.getTime(), currentWeather.getTimezone());
-        mTimeLabel.setText(time.substring(0, time.length() - 2));
-        mTimeLabelProperties.setText(time.substring(time.length() - 2, time.length()));
+        if (currentWeather.isInitialized()) {
+            mIconWeather.setImageDrawable(drawable);
+            mTemperatureLabel.setText(ForecastConverter.getString(currentWeather.getTemperature(), true, false));
 
-        mSummaryLabel.setText(currentWeather.getSummary());
-        mRealFeelLabel.setText(String.format("Real Feel : %s",
-                ForecastConverter.getString(currentWeather.getApparentTemperature(), true, false)));
-        mLabelTodaySummary.setText(
-                currentWeather.getTodaySummary());
-        //todo get uv index or remove it :(
-        mHumidityLabel.setText(String.format
-                ("%s %%", ForecastConverter.getString(currentWeather.getHumidity(), true, true)));
-        mPrecipitationLabel.setText(String.format
-                ("%s %%", ForecastConverter.getString(currentWeather.getPrecipProbability(), true, true)));
-        mWindLabel.setText(String.format
-                ("%s mps", ForecastConverter.getString(currentWeather.getWindSpeed(), false, false)));
-        mWindDirectionLabel.setText(ForecastConverter.getDirection(currentWeather.getWindDirection()));
+            String time = ForecastConverter.getString(currentWeather.getTime(), currentWeather.getTimezone());
+            mTimeLabel.setText(time.substring(0, time.length() - 2));
+            mTimeLabelProperties.setText(time.substring(time.length() - 2, time.length()));
+
+            mSummaryLabel.setText(currentWeather.getSummary());
+            mRealFeelLabel.setText(String.format("Real Feel : %s",
+                    ForecastConverter.getString(currentWeather.getApparentTemperature(), true, false)));
+            mLabelTodaySummary.setText(
+                    currentWeather.getTodaySummary());
+            //todo get uv index or remove it :(
+            mHumidityLabel.setText(String.format
+                    ("%s %%", ForecastConverter.getString(currentWeather.getHumidity(), true, true)));
+            mPrecipitationLabel.setText(String.format
+                    ("%s %%", ForecastConverter.getString(currentWeather.getPrecipProbability(), true, true)));
+            mWindLabel.setText(String.format
+                    ("%s mps", ForecastConverter.getString(currentWeather.getWindSpeed(), false, false)));
+            mWindDirectionLabel.setText(ForecastConverter.getDirection(currentWeather.getWindDirection()));
+
+            HourlyForecast[] hourlyForecasts = mCurrentWeather.getHourlyForecasts();
+            DataPoint[] hourlyTemp = new DataPoint[CurrentWeather.FORECAST_DISPLAYED];
+            DataPoint[] hourlyApparentTemp = new DataPoint[CurrentWeather.FORECAST_DISPLAYED];
+            for (int i = 0; i < CurrentWeather.FORECAST_DISPLAYED; i++) {
+                hourlyTemp[i] = new DataPoint(i, Math.round(hourlyForecasts[i].getTemperature()));
+                hourlyApparentTemp[i] = new DataPoint(i, Math.round(hourlyForecasts[i].getApparentTemperature()));
+                Log.d(TAG, String.valueOf(Math.round(hourlyForecasts[i].getTemperature())));
+            }
+            mHourlyTempSeries = new LineGraphSeries<>(hourlyTemp);
+            mHourlyApparentTempSeries = new LineGraphSeries<>(hourlyApparentTemp);
+            initGraph();
+            mGraphView.setVisibility(View.VISIBLE);
+            mGraphViewEmptyLabel.setVisibility(View.GONE);
+        } else {
+            mTemperatureLabel.setText(R.string.not_available);
+            mIconWeather.setImageResource(R.drawable.ic_weather_sunny);
+            mTimeLabel.setText("00:00");
+            mTimeLabelProperties.setText("AM");
+            mSummaryLabel.setText(R.string.not_available);
+            mRealFeelLabel.setText(R.string.not_available);
+
+            mLabelTodaySummary.setText("please refresh.....");
+
+            mUvIndexLabel.setText(R.string.not_available);
+            mHumidityLabel.setText(R.string.not_available);
+            mPrecipitationLabel.setText(R.string.not_available);
+            mWindLabel.setText(R.string.not_available);
+            mWindDirectionLabel.setText(R.string.not_available);
+
+            mGraphView.setVisibility(View.GONE);
+            mGraphViewEmptyLabel.setVisibility(View.VISIBLE);
+        }
     }
 
     //etc
