@@ -13,8 +13,11 @@ import felix.com.skydrop.R;
 
 /**
  * Created by fsoewito on 11/26/2015.
+ *
  */
 public class ForecastConverter {
+    public static final int SHORT_MODE = 0;
+    public static final int LONG_MODE = 1;
 
     public static String getString(double numeric, boolean isInteger, boolean isPercent) {
         if (isPercent){
@@ -52,11 +55,15 @@ public class ForecastConverter {
         }
     }
 
-    public static String getString(long time, String timeZone) {
-        SimpleDateFormat formatter = new SimpleDateFormat("hh:mma");
+    public static String getString(long time, String timeZone, int mode) {
+        SimpleDateFormat formatter;
+        if (mode == LONG_MODE) {
+            formatter = new SimpleDateFormat("h:mma");
+        }else {
+            formatter = new SimpleDateFormat("ha");
+        }
         formatter.setTimeZone(TimeZone.getTimeZone(timeZone));
-        String timeString = formatter.format(new Date(time * 1000));
-        return timeString;
+        return formatter.format(new Date(time * 1000));
     }
 
     public static String getDirection(double value){

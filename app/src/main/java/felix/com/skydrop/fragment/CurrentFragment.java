@@ -38,7 +38,9 @@ import org.json.JSONException;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 import butterknife.Bind;
 import butterknife.ButterKnife;
@@ -58,6 +60,7 @@ public class CurrentFragment extends Fragment
         implements SwipeRefreshLayout.OnRefreshListener, ForecastConstant, Color {
     private static final String TAG = CurrentFragment.class.getSimpleName();
 
+    private static final String CHART_MODE_KEY = "chart_mode";
     private static final int CHART_TEMP_MODE = 0;
     private static final int CHART_PRECIP_MODE = 1;
 
@@ -65,6 +68,7 @@ public class CurrentFragment extends Fragment
     double mLongitude = 106.824896;
 
     CurrentWeather mCurrentWeather;
+    HashMap<String, Integer> mState;
 
     //root view
     private Activity mActivity;
@@ -138,14 +142,10 @@ public class CurrentFragment extends Fragment
         if (mCurrentWeather.isInitialized()) {
             SharedPreferences preferences = mActivity.getSharedPreferences(FORECAST_PREFERENCES, Context.MODE_PRIVATE);
             SharedPreferences.Editor preferencesEditor = preferences.edit();
-            storePref(preferencesEditor);
+            preferencesEditor.putBoolean(KEY_IS_INIT, true);
+            preferencesEditor.putString(KEY_CURRENT_WEATHER, mCurrentWeather.toJson());
+            preferencesEditor.apply();
         }
-    }
-
-    private void storePref(SharedPreferences.Editor preferencesEditor) {
-        preferencesEditor.putBoolean(KEY_IS_INIT, true);
-        preferencesEditor.putString(KEY_CURRENT_WEATHER, mCurrentWeather.toJson());
-        preferencesEditor.commit();
     }
 
     @Override
@@ -157,6 +157,8 @@ public class CurrentFragment extends Fragment
     protected void initData() {
         mCurrentWeather = CurrentWeatherFactory.getInstance();
         mActivity = getActivity();
+        mState = new HashMap<>();
+        mState.put(CHART_MODE_KEY, CHART_TEMP_MODE);
         SharedPreferences preferences = mActivity.getSharedPreferences(FORECAST_PREFERENCES, Context.MODE_PRIVATE);
         if (preferences.getBoolean(KEY_IS_INIT, false)) {
             try {
@@ -171,14 +173,24 @@ public class CurrentFragment extends Fragment
         updateDisplay(mCurrentWeather);
         mRefreshLayout.setOnRefreshListener(this);
         mRefreshLayout.setColorSchemeColors(RED, BLUE, YELLOW, GREEN);
+
+        mLineChart.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                toggleState();
+                drawChart();
+            }
+        });
     }
 
     private void drawChart() {
         HourlyForecast[] datas = mCurrentWeather.getHourlyForecasts();
         //init label
         List<String> xVal = new ArrayList<>();
-        for (int i = 0; i<CurrentWeather.FORECAST_DISPLAYED; i++){
-            xVal.add(ForecastConverter.getString(datas[i].getTime(), mCurrentWeather.getTimezone()).substring(0,2));
+        for (int i = 0; i < CurrentWeather.FORECAST_DISPLAYED; i++) {
+            xVal.add(ForecastConverter.getString(
+                    datas[i].getTime(), mCurrentWeather.getTimezone(),
+                    ForecastConverter.SHORT_MODE));
         }
 
         //init Line
@@ -186,10 +198,12 @@ public class CurrentFragment extends Fragment
         List<Entry> apparentTempList = new ArrayList<>();
         List<Entry> precipProbList = new ArrayList<>();
 
-        for (int i = 0; i < CurrentWeather.FORECAST_DISPLAYED; i++){
+        double minYAxisVal = 200;
+        double maxYAxisVal = -100;
+        for (int i = 0; i < CurrentWeather.FORECAST_DISPLAYED; i++) {
             actualTempList.add(new Entry((float) Math.round(datas[i].getTemperature()), i));
             apparentTempList.add(new Entry((float) Math.round(datas[i].getApparentTemperature()), i));
-            precipProbList.add(new Entry((float) (datas[i].getPrecipProbability()*100), i));
+            precipProbList.add(new Entry((float) (datas[i].getPrecipProbability() * 100), i));
         }
 
         LineDataSet actualTempDataSet = new LineDataSet(actualTempList, "actual temp");
@@ -200,9 +214,31 @@ public class CurrentFragment extends Fragment
         setUpDataSet(precipProbDataSet, PRIMARY_COLOR);
 
         List<LineDataSet> dataSets = new ArrayList<>();
-        dataSets.add(actualTempDataSet);
-        dataSets.add(apparentTempDataSet);
-
+        if (mState.get(CHART_MODE_KEY) == CHART_TEMP_MODE) {
+            for (int i = 0; i < CurrentWeather.FORECAST_DISPLAYED; i++) {
+                double val = mCurrentWeather.getHourlyForecasts()[i].getTemperature();
+                double val2 = mCurrentWeather.getHourlyForecasts()[i].getApparentTemperature();
+                if (minYAxisVal > val) {
+                    minYAxisVal = val;
+                }
+                if (minYAxisVal > val2) {
+                    minYAxisVal = val2;
+                }
+                if (maxYAxisVal < val) {
+                    maxYAxisVal = val;
+                }
+                if (maxYAxisVal < val2) {
+                    maxYAxisVal = val2;
+                }
+            }
+            dataSets.add(actualTempDataSet);
+            dataSets.add(apparentTempDataSet);
+        } else {
+            minYAxisVal = 1;
+            maxYAxisVal = 99;
+            precipProbDataSet.setDrawValues(false);
+            dataSets.add(precipProbDataSet);
+        }
         //init char body
         LineData data = new LineData(xVal, dataSets);
         mLineChart.setData(data);
@@ -210,8 +246,8 @@ public class CurrentFragment extends Fragment
         YAxis axisLeft = mLineChart.getAxisLeft();
         axisRight.setEnabled(false);
 
-        axisLeft.setAxisMinValue(mLineChart.getYMin()-1f);
-        axisLeft.setAxisMaxValue(mLineChart.getYMax()+1f);
+        axisLeft.setAxisMinValue((float) (minYAxisVal - 1d));
+        axisLeft.setAxisMaxValue((float) (maxYAxisVal + 1d));
         axisLeft.setStartAtZero(false);
         axisLeft.setShowOnlyMinMax(true);
         mLineChart.setBorderColor(GREY_DARK);
@@ -221,15 +257,17 @@ public class CurrentFragment extends Fragment
         mLineChart.setScaleEnabled(false);
         mLineChart.setPinchZoom(false);
         mLineChart.setDoubleTapToZoomEnabled(false);
+
         //refresh chart
+        mLineChart.notifyDataSetChanged();
         mLineChart.invalidate();
     }
 
-    protected void setUpDataSet(LineDataSet lineDataSet, int color){
+    protected void setUpDataSet(LineDataSet lineDataSet, int color) {
         ValueFormatter formatter = new ValueFormatter() {
             @Override
             public String getFormattedValue(float value, Entry entry, int dataSetIndex, ViewPortHandler viewPortHandler) {
-                return String.format("%d", (int)value);
+                return String.format("%d", (int) value);
             }
         };
 
@@ -256,7 +294,8 @@ public class CurrentFragment extends Fragment
             mIconWeather.setImageDrawable(drawable);
             mTemperatureLabel.setText(ForecastConverter.getString(currentWeather.getTemperature(), true, false));
 
-            String time = ForecastConverter.getString(currentWeather.getTime(), currentWeather.getTimezone());
+            String time = ForecastConverter.getString(currentWeather.getTime(),
+                    currentWeather.getTimezone(), ForecastConverter.LONG_MODE);
             mTimeLabel.setText(time.substring(0, time.length() - 2));
             mTimeLabelProperties.setText(time.substring(time.length() - 2, time.length()));
 
@@ -319,6 +358,7 @@ public class CurrentFragment extends Fragment
     private void getForecast(double latitude, double longitude) {
         if (isNetworkAvailable()) {
             OkHttpClient client = new OkHttpClient();
+            client.setConnectTimeout(5, TimeUnit.SECONDS);
             Request request = new Request.Builder().
                     url(String.format("%s/%s/%04f,%04f?units=si", url, apiKey, latitude, longitude)).
                     build();
@@ -369,6 +409,14 @@ public class CurrentFragment extends Fragment
             });
         } else {
             Toast.makeText(mActivity, "Network not available", Toast.LENGTH_LONG).show();
+        }
+    }
+
+    private void toggleState() {
+        if (mState.get(CHART_MODE_KEY) == CHART_TEMP_MODE) {
+            mState.put(CHART_MODE_KEY, CHART_PRECIP_MODE);
+        } else {
+            mState.put(CHART_MODE_KEY, CHART_TEMP_MODE);
         }
     }
 }
