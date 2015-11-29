@@ -5,9 +5,7 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.graphics.ColorFilter;
-import android.graphics.DashPathEffect;
 import android.graphics.LightingColorFilter;
-import android.graphics.Paint;
 import android.graphics.drawable.Drawable;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
@@ -23,13 +21,13 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.jjoe64.graphview.GraphView;
-import com.jjoe64.graphview.GridLabelRenderer;
-import com.jjoe64.graphview.GridLabelRenderer.GridStyle;
-import com.jjoe64.graphview.LegendRenderer;
-import com.jjoe64.graphview.Viewport;
-import com.jjoe64.graphview.series.DataPoint;
-import com.jjoe64.graphview.series.LineGraphSeries;
+import com.github.mikephil.charting.charts.LineChart;
+import com.github.mikephil.charting.components.YAxis;
+import com.github.mikephil.charting.data.Entry;
+import com.github.mikephil.charting.data.LineData;
+import com.github.mikephil.charting.data.LineDataSet;
+import com.github.mikephil.charting.formatter.ValueFormatter;
+import com.github.mikephil.charting.utils.ViewPortHandler;
 import com.squareup.okhttp.Call;
 import com.squareup.okhttp.Callback;
 import com.squareup.okhttp.OkHttpClient;
@@ -39,7 +37,8 @@ import com.squareup.okhttp.Response;
 import org.json.JSONException;
 
 import java.io.IOException;
-import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.List;
 
 import butterknife.Bind;
 import butterknife.ButterKnife;
@@ -53,10 +52,14 @@ import felix.com.skydrop.util.ForecastConverter;
 
 /**
  * Created by fsoewito on 11/24/2015.
+ *
  */
 public class CurrentFragment extends Fragment
         implements SwipeRefreshLayout.OnRefreshListener, ForecastConstant, Color {
     private static final String TAG = CurrentFragment.class.getSimpleName();
+
+    private static final int CHART_TEMP_MODE = 0;
+    private static final int CHART_PRECIP_MODE = 1;
 
     double mLatitude = -6.215117;
     double mLongitude = 106.824896;
@@ -66,8 +69,6 @@ public class CurrentFragment extends Fragment
     //root view
     private Activity mActivity;
     private View mLayout;
-    private LineGraphSeries<DataPoint> mHourlyTempSeries;
-    private LineGraphSeries<DataPoint> mHourlyApparentTempSeries;
 
     @Bind(R.id.layout_current_weather)
     SwipeRefreshLayout mRefreshLayout;
@@ -110,10 +111,10 @@ public class CurrentFragment extends Fragment
     TextView mWindDirectionLabel;
 
     @Bind(R.id.graphHourly)
-    GraphView mGraphView;
+    LineChart mLineChart;
 
     @Bind(R.id.labelGraphViewEmpty)
-    TextView mGraphViewEmptyLabel;
+    TextView mLineChartEmptyLabel;
 
 
     @Nullable
@@ -172,48 +173,76 @@ public class CurrentFragment extends Fragment
         mRefreshLayout.setColorSchemeColors(RED, BLUE, YELLOW, GREEN);
     }
 
-    private void initGraph() {
-        mGraphView.removeAllSeries();
+    private void drawChart() {
+        HourlyForecast[] datas = mCurrentWeather.getHourlyForecasts();
+        //init label
+        List<String> xVal = new ArrayList<>();
+        for (int i = 0; i<CurrentWeather.FORECAST_DISPLAYED; i++){
+            xVal.add(ForecastConverter.getString(datas[i].getTime(), mCurrentWeather.getTimezone()).substring(0,2));
+        }
 
-        Paint paint = new Paint();
-        paint.setStyle(Paint.Style.STROKE);
-        paint.setStrokeWidth(10);
-        paint.setPathEffect(new DashPathEffect(new float[]{8, 5}, 0));
+        //init Line
+        List<Entry> actualTempList = new ArrayList<>();
+        List<Entry> apparentTempList = new ArrayList<>();
+        List<Entry> precipProbList = new ArrayList<>();
 
-        mHourlyApparentTempSeries.setColor(0xFF3F51B5);
-        mHourlyApparentTempSeries.setThickness(12);
-        mHourlyApparentTempSeries.setDrawDataPoints(true);
-        mHourlyApparentTempSeries.setDataPointsRadius(12f);
-        mHourlyApparentTempSeries.setCustomPaint(paint);
-        mHourlyApparentTempSeries.setTitle("Real Feel");
+        for (int i = 0; i < CurrentWeather.FORECAST_DISPLAYED; i++){
+            actualTempList.add(new Entry((float) Math.round(datas[i].getTemperature()), i));
+            apparentTempList.add(new Entry((float) Math.round(datas[i].getApparentTemperature()), i));
+            precipProbList.add(new Entry((float) (datas[i].getPrecipProbability()*100), i));
+        }
 
-        mHourlyTempSeries.setColor(0xFFFF4081);
-        mHourlyTempSeries.setThickness(12);
-        mHourlyTempSeries.setDrawDataPoints(true);
-        mHourlyTempSeries.setDataPointsRadius(12f);
-        mHourlyTempSeries.setTitle("Actual");
+        LineDataSet actualTempDataSet = new LineDataSet(actualTempList, "actual temp");
+        setUpDataSet(actualTempDataSet, PRIMARY_COLOR);
+        LineDataSet apparentTempDataSet = new LineDataSet(apparentTempList, "apparent temp");
+        setUpDataSet(apparentTempDataSet, ACCENT_COLOR);
+        LineDataSet precipProbDataSet = new LineDataSet(precipProbList, "rain chance");
+        setUpDataSet(precipProbDataSet, PRIMARY_COLOR);
 
-        GridLabelRenderer gridRenderer = mGraphView.getGridLabelRenderer();
-        gridRenderer.setGridStyle(GridStyle.HORIZONTAL);
-        gridRenderer.setGridColor(R.color.greyWhiteMedium);
-        gridRenderer.setNumHorizontalLabels(6);
-        gridRenderer.setNumVerticalLabels(4);
-        gridRenderer.setHighlightZeroLines(true);
+        List<LineDataSet> dataSets = new ArrayList<>();
+        dataSets.add(actualTempDataSet);
+        dataSets.add(apparentTempDataSet);
 
-        Viewport viewport = mGraphView.getViewport();
-        viewport.setMaxY(35);
-        viewport.setMinY(20);
-        viewport.setYAxisBoundsManual(true);
+        //init char body
+        LineData data = new LineData(xVal, dataSets);
+        mLineChart.setData(data);
+        YAxis axisRight = mLineChart.getAxisRight();
+        YAxis axisLeft = mLineChart.getAxisLeft();
+        axisRight.setEnabled(false);
 
-        mGraphView.addSeries(mHourlyTempSeries);
-        mGraphView.addSeries(mHourlyApparentTempSeries);
-        mGraphView.setScaleX(1);
-        mGraphView.setScaleY(1);
-        mGraphView.setTitle("Temperature");
-        mGraphView.getLegendRenderer().setVisible(true);
-        mGraphView.getLegendRenderer().setAlign(LegendRenderer.LegendAlign.TOP);
-        mGraphView.getLegendRenderer().setBackgroundColor(android.R.color.transparent);
-        mGraphView.getLegendRenderer().setTextColor(R.color.greyWhiteDark);
+        axisLeft.setAxisMinValue(mLineChart.getYMin()-1f);
+        axisLeft.setAxisMaxValue(mLineChart.getYMax()+1f);
+        axisLeft.setStartAtZero(false);
+        axisLeft.setShowOnlyMinMax(true);
+        mLineChart.setBorderColor(GREY_DARK);
+        mLineChart.setBackgroundColor(WHITE);
+        mLineChart.setGridBackgroundColor(WHITE);
+        mLineChart.setDrawGridBackground(false);
+        mLineChart.setScaleEnabled(false);
+        mLineChart.setPinchZoom(false);
+        mLineChart.setDoubleTapToZoomEnabled(false);
+        //refresh chart
+        mLineChart.invalidate();
+    }
+
+    protected void setUpDataSet(LineDataSet lineDataSet, int color){
+        ValueFormatter formatter = new ValueFormatter() {
+            @Override
+            public String getFormattedValue(float value, Entry entry, int dataSetIndex, ViewPortHandler viewPortHandler) {
+                return String.format("%d", (int)value);
+            }
+        };
+
+        lineDataSet.setAxisDependency(YAxis.AxisDependency.LEFT);
+        lineDataSet.setLineWidth(3f);
+        lineDataSet.setCircleSize(4f);
+        lineDataSet.setCircleColor(color);
+        lineDataSet.setDrawCircleHole(false);
+        lineDataSet.setFillColor(color);
+        lineDataSet.setColor(color);
+        lineDataSet.setValueTextSize(12f);
+        lineDataSet.setValueFormatter(formatter);
+        lineDataSet.setValueTextColor(color);
     }
 
     protected void updateDisplay(CurrentWeather currentWeather) {
@@ -237,6 +266,7 @@ public class CurrentFragment extends Fragment
             mLabelTodaySummary.setText(
                     currentWeather.getTodaySummary());
             //todo get uv index or remove it :(
+            mUvIndexLabel.setText("NA");
             mHumidityLabel.setText(String.format
                     ("%s %%", ForecastConverter.getString(currentWeather.getHumidity(), true, true)));
             mPrecipitationLabel.setText(String.format
@@ -245,19 +275,9 @@ public class CurrentFragment extends Fragment
                     ("%s mps", ForecastConverter.getString(currentWeather.getWindSpeed(), false, false)));
             mWindDirectionLabel.setText(ForecastConverter.getDirection(currentWeather.getWindDirection()));
 
-            HourlyForecast[] hourlyForecasts = mCurrentWeather.getHourlyForecasts();
-            DataPoint[] hourlyTemp = new DataPoint[CurrentWeather.FORECAST_DISPLAYED];
-            DataPoint[] hourlyApparentTemp = new DataPoint[CurrentWeather.FORECAST_DISPLAYED];
-            for (int i = 0; i < CurrentWeather.FORECAST_DISPLAYED; i++) {
-                hourlyTemp[i] = new DataPoint(i, Math.round(hourlyForecasts[i].getTemperature()));
-                hourlyApparentTemp[i] = new DataPoint(i, Math.round(hourlyForecasts[i].getApparentTemperature()));
-                Log.d(TAG, String.valueOf(Math.round(hourlyForecasts[i].getTemperature())));
-            }
-            mHourlyTempSeries = new LineGraphSeries<>(hourlyTemp);
-            mHourlyApparentTempSeries = new LineGraphSeries<>(hourlyApparentTemp);
-            initGraph();
-            mGraphView.setVisibility(View.VISIBLE);
-            mGraphViewEmptyLabel.setVisibility(View.GONE);
+            drawChart();
+            mLineChart.setVisibility(View.VISIBLE);
+            mLineChartEmptyLabel.setVisibility(View.GONE);
         } else {
             mTemperatureLabel.setText(R.string.not_available);
             mIconWeather.setImageResource(R.drawable.ic_weather_sunny);
@@ -274,8 +294,8 @@ public class CurrentFragment extends Fragment
             mWindLabel.setText(R.string.not_available);
             mWindDirectionLabel.setText(R.string.not_available);
 
-            mGraphView.setVisibility(View.GONE);
-            mGraphViewEmptyLabel.setVisibility(View.VISIBLE);
+            mLineChart.setVisibility(View.GONE);
+            mLineChartEmptyLabel.setVisibility(View.VISIBLE);
         }
     }
 
@@ -306,6 +326,12 @@ public class CurrentFragment extends Fragment
             call.enqueue(new Callback() {
                 @Override
                 public void onFailure(Request request, IOException e) {
+                    mActivity.runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            mRefreshLayout.setRefreshing(false);
+                        }
+                    });
                     alertUserAboutError();
                 }
 
@@ -324,7 +350,15 @@ public class CurrentFragment extends Fragment
                                 }
                             });
                         } else {
+                            //todo optimize
                             alertUserAboutError();
+                            mActivity.runOnUiThread(new Runnable() {
+                                @Override
+                                public void run() {
+                                    updateDisplay(mCurrentWeather);
+                                    mRefreshLayout.setRefreshing(false);
+                                }
+                            });
                         }
                     } catch (IOException e) {
                         Log.e(TAG, "Exception caught", e);
