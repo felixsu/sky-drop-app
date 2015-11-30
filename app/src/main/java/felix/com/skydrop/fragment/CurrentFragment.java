@@ -2,6 +2,7 @@ package felix.com.skydrop.fragment;
 
 
 import android.content.Context;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.ColorFilter;
 import android.graphics.LightingColorFilter;
@@ -10,6 +11,7 @@ import android.location.Location;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.Bundle;
+import android.os.Handler;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v4.widget.SwipeRefreshLayout;
@@ -45,28 +47,32 @@ import java.util.concurrent.TimeUnit;
 import butterknife.Bind;
 import butterknife.ButterKnife;
 import felix.com.skydrop.R;
+import felix.com.skydrop.Receiver.AddressResultReceiver;
 import felix.com.skydrop.activity.MainActivity;
 import felix.com.skydrop.constant.Color;
 import felix.com.skydrop.constant.ForecastConstant;
+import felix.com.skydrop.constant.GeocoderConstant;
 import felix.com.skydrop.factory.CurrentWeatherFactory;
 import felix.com.skydrop.model.CurrentWeather;
 import felix.com.skydrop.model.HourlyForecast;
+import felix.com.skydrop.service.FetchAddressIntentService;
 import felix.com.skydrop.util.ForecastConverter;
 
 /**
  * Created by fsoewito on 11/24/2015.
- *
  */
 public class CurrentFragment extends Fragment
-        implements SwipeRefreshLayout.OnRefreshListener, ForecastConstant, Color {
+        implements SwipeRefreshLayout.OnRefreshListener, ForecastConstant, AddressResultReceiver.Receiver, Color {
     private static final String TAG = CurrentFragment.class.getSimpleName();
 
     private static final String CHART_MODE_KEY = "chart_mode";
     private static final int CHART_TEMP_MODE = 0;
     private static final int CHART_PRECIP_MODE = 1;
 
+    Location mLocation;
     double mLatitude = -6.215117;
     double mLongitude = 106.824896;
+    private AddressResultReceiver mResultReceiver;
     String mAddress = "Location N/A";
 
     CurrentWeather mCurrentWeather;
@@ -138,12 +144,17 @@ public class CurrentFragment extends Fragment
 
     @Override
     public void onStart() {
+        if (mResultReceiver.getReceiver() == null){
+            mResultReceiver.setReceiver(this);
+        }
         super.onStart();
     }
 
     @Override
     public void onPause() {
-        super.onPause();
+        if (mResultReceiver.getReceiver() != null){
+            mResultReceiver.setReceiver(null);
+        }
         if (mCurrentWeather.isInitialized()) {
             SharedPreferences preferences = mActivity.getSharedPreferences(FORECAST_PREFERENCES, Context.MODE_PRIVATE);
             SharedPreferences.Editor preferencesEditor = preferences.edit();
@@ -151,28 +162,26 @@ public class CurrentFragment extends Fragment
             preferencesEditor.putString(KEY_CURRENT_WEATHER, mCurrentWeather.toJson());
             preferencesEditor.apply();
         }
+        super.onPause();
     }
 
     @Override
     public void onRefresh() {
         Log.i(TAG, "on refresh called");
-        Location location = mActivity.getLocation();
-        String address = mActivity.getAddressOutput();
-        if (location!=null) {
-            mLatitude = location.getLatitude();
-            mLongitude = location.getLongitude();
+        mLocation = mActivity.getLocation();
+        if (mLocation != null) {
+            mLatitude = mLocation.getLatitude();
+            mLongitude = mLocation.getLongitude();
             Log.i(TAG, "location updated");
-        }
-        if (address != null){
-            mAddress = address;
-            mCurrentWeather.setAddress(mAddress);
         }
         getForecast(mLatitude, mLongitude);
     }
 
     protected void initData() {
         mCurrentWeather = CurrentWeatherFactory.getInstance();
-        mActivity = (MainActivity)getActivity();
+        mActivity = (MainActivity) getActivity();
+        mResultReceiver = new AddressResultReceiver(new Handler());
+        mResultReceiver.setReceiver(this);
         mState = new HashMap<>();
         mState.put(CHART_MODE_KEY, CHART_TEMP_MODE);
         SharedPreferences preferences = mActivity.getSharedPreferences(FORECAST_PREFERENCES, Context.MODE_PRIVATE);
@@ -273,6 +282,7 @@ public class CurrentFragment extends Fragment
         mLineChart.setScaleEnabled(false);
         mLineChart.setPinchZoom(false);
         mLineChart.setDoubleTapToZoomEnabled(false);
+        mLineChart.setDescription("");
 
         //refresh chart
         mLineChart.notifyDataSetChanged();
@@ -399,13 +409,7 @@ public class CurrentFragment extends Fragment
                         Log.v(TAG, response.body().string());
                         if (response.isSuccessful()) {
                             mCurrentWeather.getFromJson(jsonData);
-                            mActivity.runOnUiThread(new Runnable() {
-                                @Override
-                                public void run() {
-                                    updateDisplay(mCurrentWeather);
-                                    mRefreshLayout.setRefreshing(false);
-                                }
-                            });
+                            startIntentService();
                         } else {
                             //todo optimize
                             alertUserAboutError();
@@ -435,5 +439,31 @@ public class CurrentFragment extends Fragment
         } else {
             mState.put(CHART_MODE_KEY, CHART_TEMP_MODE);
         }
+    }
+
+    @Override
+    public void onReceiveResult(int resultCode, Bundle resultData) {
+        if (resultCode == GeocoderConstant.SUCCESS_RESULT) {
+            Log.i(TAG, "geocoder success");
+            mAddress = resultData.getString(GeocoderConstant.RESULT_DATA_KEY);
+        } else {
+            Log.i(TAG, "geocoder unsuccessful");
+            mAddress = "Location N/A";
+        }
+        mCurrentWeather.setAddress(mAddress);
+        mActivity.runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                updateDisplay(mCurrentWeather);
+                mRefreshLayout.setRefreshing(false);
+            }
+        });
+    }
+
+    protected void startIntentService() {
+        Intent intent = new Intent(getActivity(), FetchAddressIntentService.class);
+        intent.putExtra(GeocoderConstant.RECEIVER, mResultReceiver);
+        intent.putExtra(GeocoderConstant.LOCATION_DATA_EXTRA, mLocation);
+        mActivity.startService(intent);
     }
 }

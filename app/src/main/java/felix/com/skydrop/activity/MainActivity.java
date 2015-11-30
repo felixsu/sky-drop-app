@@ -53,7 +53,7 @@ public class MainActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener,
         GoogleApiClient.ConnectionCallbacks,
         GoogleApiClient.OnConnectionFailedListener, ForecastConstant,
-        LocationListener, AddressResultReceiver.Receiver{
+        LocationListener{
 
     private static final String TAG = MainActivity.class.getSimpleName();
     private static final String KEY_REQUEST_LOCATION_STATE = "locationRequestState";
@@ -64,7 +64,6 @@ public class MainActivity extends AppCompatActivity
     private String mAddressOutput;
     private LocationRequest mLocationRequest;
     private GoogleApiClient mGoogleApiClient;
-    private AddressResultReceiver mResultReceiver;
     private boolean mRequestingLocation = false;
 
     DrawerLayout mDrawer;
@@ -104,8 +103,6 @@ public class MainActivity extends AppCompatActivity
         fragmentTransaction.commit();
     }
     private void initField(){
-        mResultReceiver = new AddressResultReceiver(new Handler());
-        mResultReceiver.setReceiver(this);
     }
 
     private void updateState(Bundle savedState){
@@ -121,18 +118,6 @@ public class MainActivity extends AppCompatActivity
         if (mGoogleApiClient != null) {
             mGoogleApiClient.connect();
         }
-    }
-
-    @Override
-    protected void onPostResume() {
-        mResultReceiver.setReceiver(this);
-        super.onPostResume();
-    }
-
-    @Override
-    protected void onPause() {
-        mResultReceiver.setReceiver(this);
-        super.onPause();
     }
 
     @Override
@@ -212,14 +197,6 @@ public class MainActivity extends AppCompatActivity
         return mAddressOutput;
     }
 
-    protected void startIntentService() {
-        Intent intent = new Intent(this, FetchAddressIntentService.class);
-        intent.putExtra(GeocoderConstant.RECEIVER, mResultReceiver);
-        intent.putExtra(GeocoderConstant.LOCATION_DATA_EXTRA, mLocation);
-        startService(intent);
-    }
-
-
     @Override
     public void onConnected(Bundle bundle) {
         Log.i(TAG, "entering on connected gms");
@@ -258,22 +235,9 @@ public class MainActivity extends AppCompatActivity
         Log.i(TAG, "entering on Location changed");
         if (location != null) {
             mLocation = location;
-            startIntentService();
         }else{
             Log.i(TAG, "Location not found");
         }
         mRequestingLocation = false;
-    }
-
-    @Override
-    public void onReceiveResult(int resultCode, Bundle resultData) {
-        if (resultCode == GeocoderConstant.SUCCESS_RESULT) {
-            Log.i(TAG, "geocoder success");
-            mAddressOutput = resultData.getString(GeocoderConstant.RESULT_DATA_KEY);
-        }else{
-            Log.i(TAG, "geocoder unsuccessful");
-            mAddressOutput = "Location N/A";
-        }
-
     }
 }

@@ -49,6 +49,7 @@
                         android:textSize="36sp"
                         tools:text="Jakarta, ID"
                         />
+
                     <TextView
                         android:id="@+id/labelTime"
                         android:layout_width="wrap_content"
@@ -72,8 +73,8 @@
                     <ImageView
                         android:id="@+id/imageViewWeather"
                         android:layout_width="160dp"
+                        android:layout_height="160dp"
                         android:layout_below="@id/labelTime"
-                        android:layout_height="176dp"
                         android:adjustViewBounds="true"
                         android:contentDescription="weather icon"
                         android:src="@drawable/ic_weather_sunny"/>
@@ -89,7 +90,7 @@
                             android:id="@+id/labelTemperature"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:paddingLeft="8dp"
+                            android:paddingLeft="16dp"
                             android:paddingTop="4dp"
                             android:textSize="64sp"
                             tools:text="39"/>
@@ -108,7 +109,8 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_below="@id/labelTemperature"
-                            android:paddingLeft="8dp"
+                            android:paddingLeft="16dp"
+                            android:textSize="16sp"
                             tools:text="Mostly Cloudy"/>
 
                         <TextView
@@ -116,7 +118,7 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_alignParentBottom="true"
-                            android:paddingLeft="8dp"
+                            android:paddingLeft="16dp"
                             android:text="Real Feel %d"
                             tools:text="Real Feel : 39"/>
                     </RelativeLayout>
@@ -166,13 +168,14 @@
                         android:layout_width="match_parent"
                         android:layout_height="160dp"
                         android:layout_below="@id/labelGraphView"/>
+
                     <TextView
-                        android:layout_below="@id/labelGraphView"
                         android:id="@+id/labelGraphViewEmpty"
                         android:layout_width="match_parent"
                         android:layout_height="160dp"
-                        android:text="@string/no_data"
-                        android:gravity="center"/>
+                        android:layout_below="@id/labelGraphView"
+                        android:gravity="center"
+                        android:text="@string/no_data"/>
                 </RelativeLayout>
             </RelativeLayout>
 
@@ -181,8 +184,8 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_below="@id/cardContainer2"
-                android:layout_marginTop="@dimen/card_margin"
                 android:layout_marginBottom="@dimen/activity_vertical_margin"
+                android:layout_marginTop="@dimen/card_margin"
                 android:background="@drawable/shape_card"
                 android:translationZ="4dp">
 
@@ -257,7 +260,8 @@
                         android:layout_alignParentRight="true"
                         android:layout_below="@id/labelAdditionalParameter"
                         android:layout_toRightOf="@+id/labelUvIndex"
-                        android:text="Wind"/>
+                        android:text="Wind"
+                        android:textStyle="bold"/>
 
                     <TextView
                         android:id="@+id/labelWindDirection"
