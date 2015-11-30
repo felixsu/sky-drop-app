@@ -60,6 +60,7 @@ import felix.com.skydrop.util.ForecastConverter;
 
 /**
  * Created by fsoewito on 11/24/2015.
+ *
  */
 public class CurrentFragment extends Fragment
         implements SwipeRefreshLayout.OnRefreshListener, ForecastConstant, AddressResultReceiver.Receiver, Color {
@@ -311,7 +312,7 @@ public class CurrentFragment extends Fragment
 
     protected void updateDisplay(CurrentWeather currentWeather) {
         ColorFilter filter = new LightingColorFilter(BLACK, 0xFF3F51B5);
-        Drawable drawable = mActivity.getDrawable(ForecastConverter.getIcon(currentWeather.getIcon()));
+        Drawable drawable = mActivity.getResources().getDrawable(ForecastConverter.getIcon(currentWeather.getIcon()));
         if (drawable != null) {
             drawable.setColorFilter(filter);
         }
