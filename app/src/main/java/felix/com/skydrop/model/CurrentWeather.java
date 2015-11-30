@@ -13,6 +13,7 @@ import felix.com.skydrop.constant.ForecastConstant;
 public class CurrentWeather extends BaseWeather implements ForecastConstant {
     public static final int FORECAST_DISPLAYED = 6;
 
+    protected String address;
     protected boolean initialized;
     protected long mTime;
     protected String mSummary;
@@ -131,12 +132,22 @@ public class CurrentWeather extends BaseWeather implements ForecastConstant {
         this.initialized = initialized;
     }
 
+    public String getAddress() {
+        return address;
+    }
+
+    public void setAddress(String address) {
+        this.address = address;
+    }
+
     public void getFromJson(String json) throws JSONException {
         JSONObject container = new JSONObject(json);
         if (container.has(KEY_INITIALIZED)) {
             setInitialized(container.getBoolean(KEY_INITIALIZED));
+            setAddress(container.getString(KEY_ADDRESS));
         }else{
             setInitialized(true);
+            setAddress("Location N/A");
         }
         setTimezone(container.getString(KEY_TIMEZONE));
         setLatitude(container.getDouble(KEY_LATITUDE));
@@ -175,6 +186,7 @@ public class CurrentWeather extends BaseWeather implements ForecastConstant {
     public String toJson(){
         JSONObject result = new JSONObject();
         try {
+            result.put(KEY_ADDRESS, getAddress());
             result.put(KEY_INITIALIZED, isInitialized());
             result.put(KEY_TIMEZONE, getTimezone());
             result.put(KEY_LATITUDE, getLatitude());

@@ -1,10 +1,14 @@
 package felix.com.skydrop.activity;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
+import android.content.Intent;
 import android.location.Location;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.ResultReceiver;
 import android.support.design.widget.NavigationView;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
@@ -21,6 +25,9 @@ import android.widget.Toast;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GooglePlayServicesUtil;
 import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.location.LocationAvailability;
+import com.google.android.gms.location.LocationListener;
+import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
 import com.squareup.okhttp.Call;
 import com.squareup.okhttp.Callback;
@@ -33,21 +40,32 @@ import org.json.JSONException;
 import java.io.IOException;
 
 import felix.com.skydrop.R;
+import felix.com.skydrop.Receiver.AddressResultReceiver;
 import felix.com.skydrop.constant.ForecastConstant;
+import felix.com.skydrop.constant.GeocoderConstant;
 import felix.com.skydrop.factory.CurrentWeatherFactory;
 import felix.com.skydrop.fragment.AlertDialogFragment;
 import felix.com.skydrop.fragment.CurrentFragment;
 import felix.com.skydrop.model.CurrentWeather;
+import felix.com.skydrop.service.FetchAddressIntentService;
 
 public class MainActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener,
         GoogleApiClient.ConnectionCallbacks,
-        GoogleApiClient.OnConnectionFailedListener, ForecastConstant {
+        GoogleApiClient.OnConnectionFailedListener, ForecastConstant,
+        LocationListener, AddressResultReceiver.Receiver{
 
     private static final String TAG = MainActivity.class.getSimpleName();
+    private static final String KEY_REQUEST_LOCATION_STATE = "locationRequestState";
+
     private static final int REQUEST_CODE_RECOVER_PLAY_SERVICES = 200;
+
     private Location mLocation;
+    private String mAddressOutput;
+    private LocationRequest mLocationRequest;
     private GoogleApiClient mGoogleApiClient;
+    private AddressResultReceiver mResultReceiver;
+    private boolean mRequestingLocation = false;
 
     DrawerLayout mDrawer;
     FragmentManager mFragmentManager;
@@ -58,9 +76,10 @@ public class MainActivity extends AppCompatActivity
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         initView();
+        updateState(savedInstanceState);
         initField();
-
         if (checkGooglePlayServices()) {
+            Log.i(TAG, "gms available");
             buildGoogleApiClient();
         }
     }
@@ -85,7 +104,41 @@ public class MainActivity extends AppCompatActivity
         fragmentTransaction.commit();
     }
     private void initField(){
+        mResultReceiver = new AddressResultReceiver(new Handler());
+        mResultReceiver.setReceiver(this);
+    }
 
+    private void updateState(Bundle savedState){
+        if (savedState != null){
+            Log.i(TAG, "state not empty");
+            mRequestingLocation = savedState.getBoolean(KEY_REQUEST_LOCATION_STATE, false);
+        }
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+        if (mGoogleApiClient != null) {
+            mGoogleApiClient.connect();
+        }
+    }
+
+    @Override
+    protected void onPostResume() {
+        mResultReceiver.setReceiver(this);
+        super.onPostResume();
+    }
+
+    @Override
+    protected void onPause() {
+        mResultReceiver.setReceiver(this);
+        super.onPause();
+    }
+
+    @Override
+    protected void onSaveInstanceState(Bundle outState) {
+        outState.putBoolean(KEY_REQUEST_LOCATION_STATE, mRequestingLocation);
+        super.onSaveInstanceState(outState);
     }
 
     @Override
@@ -110,7 +163,9 @@ public class MainActivity extends AppCompatActivity
         if (id == R.id.action_settings) {
             return true;
         }
-
+        if (id == R.id.action_refresh){
+            return true;
+        }
         return super.onOptionsItemSelected(item);
     }
 
@@ -148,8 +203,43 @@ public class MainActivity extends AppCompatActivity
         return true;
     }
 
+    //etc
+    public Location getLocation() {
+        return mLocation;
+    }
+
+    public String getAddressOutput() {
+        return mAddressOutput;
+    }
+
+    protected void startIntentService() {
+        Intent intent = new Intent(this, FetchAddressIntentService.class);
+        intent.putExtra(GeocoderConstant.RECEIVER, mResultReceiver);
+        intent.putExtra(GeocoderConstant.LOCATION_DATA_EXTRA, mLocation);
+        startService(intent);
+    }
+
+
     @Override
     public void onConnected(Bundle bundle) {
+        Log.i(TAG, "entering on connected gms");
+        LocationAvailability availability = LocationServices.FusedLocationApi.getLocationAvailability(mGoogleApiClient);
+        if (availability != null) {
+            if (availability.isLocationAvailable() && !mRequestingLocation) {
+                mRequestingLocation = true;
+                Log.i(TAG, "finding location started");
+                mLocationRequest = LocationRequest.create();
+                mLocationRequest.setPriority(LocationRequest.PRIORITY_BALANCED_POWER_ACCURACY);
+                mLocationRequest.setInterval(10000);
+                mLocationRequest.setFastestInterval(5000);
+                mLocationRequest.setMaxWaitTime(2000);
+                LocationServices.FusedLocationApi.requestLocationUpdates(mGoogleApiClient, mLocationRequest, this);
+            } else {
+                Toast.makeText(this, "Location not available", Toast.LENGTH_SHORT).show();
+            }
+        }else{
+            Log.i(TAG, "availability null");
+        }
 
     }
 
@@ -160,6 +250,30 @@ public class MainActivity extends AppCompatActivity
 
     @Override
     public void onConnectionFailed(ConnectionResult connectionResult) {
+        Log.e(TAG, connectionResult.getErrorMessage());
+    }
+
+    @Override
+    public void onLocationChanged(Location location) {
+        Log.i(TAG, "entering on Location changed");
+        if (location != null) {
+            mLocation = location;
+            startIntentService();
+        }else{
+            Log.i(TAG, "Location not found");
+        }
+        mRequestingLocation = false;
+    }
+
+    @Override
+    public void onReceiveResult(int resultCode, Bundle resultData) {
+        if (resultCode == GeocoderConstant.SUCCESS_RESULT) {
+            Log.i(TAG, "geocoder success");
+            mAddressOutput = resultData.getString(GeocoderConstant.RESULT_DATA_KEY);
+        }else{
+            Log.i(TAG, "geocoder unsuccessful");
+            mAddressOutput = "Location N/A";
+        }
 
     }
 }

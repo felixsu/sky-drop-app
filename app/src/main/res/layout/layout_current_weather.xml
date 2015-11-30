@@ -41,9 +41,38 @@
                     android:layout_marginRight="@dimen/activity_horizontal_margin"
                     android:layout_marginTop="@dimen/activity_vertical_margin">
 
+                    <TextView
+                        android:id="@+id/labelLocation"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_alignParentTop="true"
+                        android:textSize="36sp"
+                        tools:text="Jakarta, ID"
+                        />
+                    <TextView
+                        android:id="@+id/labelTime"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_below="@id/labelLocation"
+                        android:textSize="24sp"
+                        tools:text="04:35"/>
+
+                    <TextView
+                        android:id="@+id/labelTimeProperties"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_alignParentRight="true"
+                        android:layout_alignTop="@id/labelTime"
+                        android:layout_toRightOf="@id/labelTime"
+                        android:paddingLeft="8dp"
+                        android:paddingTop="4dp"
+                        android:textSize="18sp"
+                        tools:text="AM"/>
+
                     <ImageView
                         android:id="@+id/imageViewWeather"
                         android:layout_width="160dp"
+                        android:layout_below="@id/labelTime"
                         android:layout_height="176dp"
                         android:adjustViewBounds="true"
                         android:contentDescription="weather icon"
@@ -57,31 +86,9 @@
                         android:layout_toRightOf="@id/imageViewWeather">
 
                         <TextView
-                            android:id="@+id/labelTime"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_alignParentTop="true"
-                            android:paddingLeft="8dp"
-                            android:textSize="36sp"
-                            tools:text="04:35"/>
-
-                        <TextView
-                            android:id="@+id/labelTimeProperties"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_alignParentRight="true"
-                            android:layout_alignTop="@id/labelTime"
-                            android:layout_toRightOf="@id/labelTime"
-                            android:paddingLeft="8dp"
-                            android:paddingTop="4dp"
-                            android:textSize="18sp"
-                            tools:text="AM"/>
-
-                        <TextView
                             android:id="@+id/labelTemperature"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:layout_below="@id/labelTime"
                             android:paddingLeft="8dp"
                             android:paddingTop="4dp"
                             android:textSize="64sp"
@@ -125,7 +132,6 @@
                         android:paddingTop="@dimen/activity_vertical_margin"
                         tools:text="clear day, enjoy your day"/>
                 </RelativeLayout>
-
             </RelativeLayout>
 
             <RelativeLayout
@@ -134,6 +140,49 @@
                 android:layout_height="wrap_content"
                 android:layout_below="@id/cardContainer"
                 android:layout_marginTop="@dimen/card_margin"
+                android:background="@drawable/shape_card"
+                android:translationZ="4dp">
+
+                <RelativeLayout
+                    android:id="@+id/chartContainer"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="@dimen/activity_vertical_margin"
+                    android:layout_marginLeft="@dimen/activity_horizontal_margin"
+                    android:layout_marginRight="@dimen/activity_horizontal_margin"
+                    android:layout_marginTop="@dimen/activity_vertical_margin">
+
+                    <TextView
+                        android:id="@+id/labelGraphView"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:paddingBottom="@dimen/activity_vertical_margin"
+                        android:text="Hourly Forecast"
+                        android:textSize="@dimen/titleCard"
+                        android:textStyle="bold"/>
+
+                    <com.github.mikephil.charting.charts.LineChart
+                        android:id="@+id/graphHourly"
+                        android:layout_width="match_parent"
+                        android:layout_height="160dp"
+                        android:layout_below="@id/labelGraphView"/>
+                    <TextView
+                        android:layout_below="@id/labelGraphView"
+                        android:id="@+id/labelGraphViewEmpty"
+                        android:layout_width="match_parent"
+                        android:layout_height="160dp"
+                        android:text="@string/no_data"
+                        android:gravity="center"/>
+                </RelativeLayout>
+            </RelativeLayout>
+
+            <RelativeLayout
+                android:id="@+id/cardContainer3"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_below="@id/cardContainer2"
+                android:layout_marginTop="@dimen/card_margin"
+                android:layout_marginBottom="@dimen/activity_vertical_margin"
                 android:background="@drawable/shape_card"
                 android:translationZ="4dp">
 
@@ -245,51 +294,6 @@
                         android:text="Speed"/>
                 </RelativeLayout>
             </RelativeLayout>
-
-            <RelativeLayout
-                android:id="@+id/cardContainer3"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_below="@id/cardContainer2"
-                android:layout_marginBottom="@dimen/activity_vertical_margin"
-                android:layout_marginTop="@dimen/card_margin"
-                android:background="@drawable/shape_card"
-                android:translationZ="4dp">
-
-                <RelativeLayout
-                    android:id="@+id/chartContainer"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginBottom="@dimen/activity_vertical_margin"
-                    android:layout_marginLeft="@dimen/activity_horizontal_margin"
-                    android:layout_marginRight="@dimen/activity_horizontal_margin"
-                    android:layout_marginTop="@dimen/activity_vertical_margin">
-
-                    <TextView
-                        android:id="@+id/labelGraphView"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:paddingBottom="@dimen/activity_vertical_margin"
-                        android:text="Hourly Forecast"
-                        android:textSize="@dimen/titleCard"
-                        android:textStyle="bold"/>
-
-                    <com.github.mikephil.charting.charts.LineChart
-                        android:id="@+id/graphHourly"
-                        android:layout_width="match_parent"
-                        android:layout_height="160dp"
-                        android:layout_below="@id/labelGraphView"/>
-                    <TextView
-                        android:layout_below="@id/labelGraphView"
-                        android:id="@+id/labelGraphViewEmpty"
-                        android:layout_width="match_parent"
-                        android:layout_height="160dp"
-                        android:text="@string/no_data"
-                        android:gravity="center"/>
-                </RelativeLayout>
-            </RelativeLayout>
-
-
         </RelativeLayout>
     </ScrollView>
 </android.support.v4.widget.SwipeRefreshLayout>

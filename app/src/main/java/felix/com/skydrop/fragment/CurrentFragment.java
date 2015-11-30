@@ -1,12 +1,12 @@
 package felix.com.skydrop.fragment;
 
 
-import android.app.Activity;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.graphics.ColorFilter;
 import android.graphics.LightingColorFilter;
 import android.graphics.drawable.Drawable;
+import android.location.Location;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.Bundle;
@@ -45,6 +45,7 @@ import java.util.concurrent.TimeUnit;
 import butterknife.Bind;
 import butterknife.ButterKnife;
 import felix.com.skydrop.R;
+import felix.com.skydrop.activity.MainActivity;
 import felix.com.skydrop.constant.Color;
 import felix.com.skydrop.constant.ForecastConstant;
 import felix.com.skydrop.factory.CurrentWeatherFactory;
@@ -66,26 +67,30 @@ public class CurrentFragment extends Fragment
 
     double mLatitude = -6.215117;
     double mLongitude = 106.824896;
+    String mAddress = "Location N/A";
 
     CurrentWeather mCurrentWeather;
     HashMap<String, Integer> mState;
 
     //root view
-    private Activity mActivity;
+    private MainActivity mActivity;
     private View mLayout;
 
     @Bind(R.id.layout_current_weather)
     SwipeRefreshLayout mRefreshLayout;
 
     //component
-    @Bind(R.id.labelTemperature)
-    TextView mTemperatureLabel;
+    @Bind(R.id.labelLocation)
+    TextView mAddressLabel;
 
     @Bind(R.id.labelTime)
     TextView mTimeLabel;
 
     @Bind(R.id.labelTimeProperties)
     TextView mTimeLabelProperties;
+
+    @Bind(R.id.labelTemperature)
+    TextView mTemperatureLabel;
 
     @Bind(R.id.imageViewWeather)
     ImageView mIconWeather;
@@ -151,12 +156,23 @@ public class CurrentFragment extends Fragment
     @Override
     public void onRefresh() {
         Log.i(TAG, "on refresh called");
+        Location location = mActivity.getLocation();
+        String address = mActivity.getAddressOutput();
+        if (location!=null) {
+            mLatitude = location.getLatitude();
+            mLongitude = location.getLongitude();
+            Log.i(TAG, "location updated");
+        }
+        if (address != null){
+            mAddress = address;
+            mCurrentWeather.setAddress(mAddress);
+        }
         getForecast(mLatitude, mLongitude);
     }
 
     protected void initData() {
         mCurrentWeather = CurrentWeatherFactory.getInstance();
-        mActivity = getActivity();
+        mActivity = (MainActivity)getActivity();
         mState = new HashMap<>();
         mState.put(CHART_MODE_KEY, CHART_TEMP_MODE);
         SharedPreferences preferences = mActivity.getSharedPreferences(FORECAST_PREFERENCES, Context.MODE_PRIVATE);
@@ -293,7 +309,7 @@ public class CurrentFragment extends Fragment
         if (currentWeather.isInitialized()) {
             mIconWeather.setImageDrawable(drawable);
             mTemperatureLabel.setText(ForecastConverter.getString(currentWeather.getTemperature(), true, false));
-
+            mAddressLabel.setText(currentWeather.getAddress());
             String time = ForecastConverter.getString(currentWeather.getTime(),
                     currentWeather.getTimezone(), ForecastConverter.LONG_MODE);
             mTimeLabel.setText(time.substring(0, time.length() - 2));
@@ -318,6 +334,7 @@ public class CurrentFragment extends Fragment
             mLineChart.setVisibility(View.VISIBLE);
             mLineChartEmptyLabel.setVisibility(View.GONE);
         } else {
+            mAddressLabel.setText("Location NA");
             mTemperatureLabel.setText(R.string.not_available);
             mIconWeather.setImageResource(R.drawable.ic_weather_sunny);
             mTimeLabel.setText("00:00");

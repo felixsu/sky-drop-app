@@ -11,6 +11,7 @@ public interface ForecastConstant {
     String KEY_IS_INIT = "key_isInit";
     String KEY_CURRENT_WEATHER = "key_weatherData";
 
+    String KEY_ADDRESS = "address";
     String KEY_INITIALIZED = "initialized";
     String KEY_TIMEZONE = "timezone";
     String KEY_LATITUDE = "latitude";
