@@ -24,6 +24,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.github.mikephil.charting.charts.LineChart;
+import com.github.mikephil.charting.components.XAxis;
 import com.github.mikephil.charting.components.YAxis;
 import com.github.mikephil.charting.data.Entry;
 import com.github.mikephil.charting.data.LineData;
@@ -37,6 +38,7 @@ import com.squareup.okhttp.Request;
 import com.squareup.okhttp.Response;
 
 import org.json.JSONException;
+import org.w3c.dom.Text;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -56,6 +58,7 @@ import felix.com.skydrop.factory.CurrentWeatherFactory;
 import felix.com.skydrop.model.CurrentWeather;
 import felix.com.skydrop.model.HourlyForecast;
 import felix.com.skydrop.service.FetchAddressIntentService;
+import felix.com.skydrop.util.DecisionFactory;
 import felix.com.skydrop.util.ForecastConverter;
 
 /**
@@ -125,6 +128,12 @@ public class CurrentFragment extends Fragment
 
     @Bind(R.id.labelWindDirection)
     TextView mWindDirectionLabel;
+
+    @Bind(R.id.labelGraphViewTitle)
+    TextView mGraphViewTitleLabel;
+
+    @Bind(R.id.labelGraphViewContent)
+    TextView mGraphViewContentLabel;
 
     @Bind(R.id.graphHourly)
     LineChart mLineChart;
@@ -268,22 +277,38 @@ public class CurrentFragment extends Fragment
         //init char body
         LineData data = new LineData(xVal, dataSets);
         mLineChart.setData(data);
+
         YAxis axisRight = mLineChart.getAxisRight();
-        YAxis axisLeft = mLineChart.getAxisLeft();
         axisRight.setEnabled(false);
+
+        XAxis xAxis = mLineChart.getXAxis();
+        xAxis.setPosition(XAxis.XAxisPosition.BOTTOM);
+        xAxis.setDrawGridLines(false);
+
+        YAxis axisLeft = mLineChart.getAxisLeft();
 
         axisLeft.setAxisMinValue((float) (minYAxisVal - 1d));
         axisLeft.setAxisMaxValue((float) (maxYAxisVal + 1d));
         axisLeft.setStartAtZero(false);
-        axisLeft.setShowOnlyMinMax(true);
+        axisLeft.setDrawGridLines(false);
+
         mLineChart.setBorderColor(GREY_DARK);
         mLineChart.setBackgroundColor(WHITE);
         mLineChart.setGridBackgroundColor(WHITE);
         mLineChart.setDrawGridBackground(false);
+        //interaction setting
         mLineChart.setScaleEnabled(false);
         mLineChart.setPinchZoom(false);
         mLineChart.setDoubleTapToZoomEnabled(false);
-        mLineChart.setDescription("");
+        mLineChart.setHighlightPerDragEnabled(false);
+        mLineChart.setHighlightPerTapEnabled(false);
+
+        //title
+        if (mState.get(CHART_MODE_KEY) == CHART_TEMP_MODE) {
+            mLineChart.setDescription("Temperature Forecast");
+        }else{
+            mLineChart.setDescription("Rain Chance Forecast");
+        }
 
         //refresh chart
         mLineChart.notifyDataSetChanged();
@@ -341,6 +366,10 @@ public class CurrentFragment extends Fragment
                     ("%s mps", ForecastConverter.getString(currentWeather.getWindSpeed(), false, false)));
             mWindDirectionLabel.setText(ForecastConverter.getDirection(currentWeather.getWindDirection()));
 
+            String[] forecast = DecisionFactory.generateForecastDecision(currentWeather.getHourlyForecasts()).split("-", 2);
+            mGraphViewTitleLabel.setText(forecast[0]);
+            mGraphViewContentLabel.setText(forecast[1]);
+
             drawChart();
             mLineChart.setVisibility(View.VISIBLE);
             mLineChartEmptyLabel.setVisibility(View.GONE);
@@ -361,6 +390,9 @@ public class CurrentFragment extends Fragment
             mWindLabel.setText(R.string.not_available);
             mWindDirectionLabel.setText(R.string.not_available);
 
+            mGraphViewTitleLabel.setText(R.string.not_available);
+            mGraphViewContentLabel.setText(R.string.not_available);
+
             mLineChart.setVisibility(View.GONE);
             mLineChartEmptyLabel.setVisibility(View.VISIBLE);
         }
@@ -369,7 +401,7 @@ public class CurrentFragment extends Fragment
     //etc
     private void alertUserAboutError() {
         AlertDialogFragment dialogFragment = new AlertDialogFragment();
-        dialogFragment.show(mActivity.getFragmentManager(), "error_dialog");
+        dialogFragment.show(mActivity.getSupportFragmentManager(), "error_dialog");
     }
 
     private boolean isNetworkAvailable() {

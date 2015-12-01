@@ -38,14 +38,19 @@ public class FetchAddressIntentService extends IntentService {
         Location location = intent.getParcelableExtra(GeocoderConstant.LOCATION_DATA_EXTRA);
         List<Address> addresses = null;
         try{
-            addresses = geocoder.getFromLocation(
-                    location.getLatitude(), location.getLongitude(),
-                    1);
+            if (location != null) {
+                addresses = geocoder.getFromLocation(
+                        location.getLatitude(), location.getLongitude(),
+                        1);
+            }else{
+                addresses = null;
+            }
 
         } catch (IOException e) {
             errorMsg = "Geocoder service error";
             Log.e(TAG, errorMsg);
         }
+
 
         if (addresses == null || addresses.size() <1){
             if (errorMsg.equals("")){

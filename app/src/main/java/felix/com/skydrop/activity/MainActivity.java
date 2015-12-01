@@ -1,14 +1,7 @@
 package felix.com.skydrop.activity;
 
-import android.annotation.SuppressLint;
-import android.content.Context;
-import android.content.Intent;
 import android.location.Location;
-import android.net.ConnectivityManager;
-import android.net.NetworkInfo;
 import android.os.Bundle;
-import android.os.Handler;
-import android.os.ResultReceiver;
 import android.support.design.widget.NavigationView;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
@@ -20,6 +13,7 @@ import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.LinearLayout;
 import android.widget.Toast;
 
 import com.google.android.gms.common.ConnectionResult;
@@ -29,25 +23,14 @@ import com.google.android.gms.location.LocationAvailability;
 import com.google.android.gms.location.LocationListener;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
-import com.squareup.okhttp.Call;
-import com.squareup.okhttp.Callback;
-import com.squareup.okhttp.OkHttpClient;
-import com.squareup.okhttp.Request;
-import com.squareup.okhttp.Response;
 
-import org.json.JSONException;
-
-import java.io.IOException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
 import felix.com.skydrop.R;
-import felix.com.skydrop.Receiver.AddressResultReceiver;
 import felix.com.skydrop.constant.ForecastConstant;
-import felix.com.skydrop.constant.GeocoderConstant;
-import felix.com.skydrop.factory.CurrentWeatherFactory;
-import felix.com.skydrop.fragment.AlertDialogFragment;
 import felix.com.skydrop.fragment.CurrentFragment;
-import felix.com.skydrop.model.CurrentWeather;
-import felix.com.skydrop.service.FetchAddressIntentService;
+import felix.com.skydrop.fragment.InfoDialogFragment;
 
 public class MainActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener,
@@ -61,7 +44,6 @@ public class MainActivity extends AppCompatActivity
     private static final int REQUEST_CODE_RECOVER_PLAY_SERVICES = 200;
 
     private Location mLocation;
-    private String mAddressOutput;
     private LocationRequest mLocationRequest;
     private GoogleApiClient mGoogleApiClient;
     private boolean mRequestingLocation = false;
@@ -118,6 +100,23 @@ public class MainActivity extends AppCompatActivity
         if (mGoogleApiClient != null) {
             mGoogleApiClient.connect();
         }
+
+        long time = System.currentTimeMillis();
+        String currentHourString = new SimpleDateFormat("hh").format(new Date(time));
+        int currentHour = Integer.parseInt(currentHourString);
+        LinearLayout navBarHeaderContainer = (LinearLayout) mDrawer.findViewById(R.id.navBarHeaderContainer);
+        if (navBarHeaderContainer != null) {
+            Log.i(TAG, "header not null");
+            if (currentHour > 0 && currentHour < 6) {
+                navBarHeaderContainer.setBackgroundResource(R.drawable.head_paper_dawn);
+            } else if (currentHour >= 6 && currentHour < 18) {
+                navBarHeaderContainer.setBackgroundResource(R.drawable.head_paper_sunny);
+            } else {
+                navBarHeaderContainer.setBackgroundResource(R.drawable.head_paper_dawn);
+            }
+        }else{
+            Log.i(TAG, "header null");
+        }
     }
 
     @Override
@@ -146,9 +145,11 @@ public class MainActivity extends AppCompatActivity
     public boolean onOptionsItemSelected(MenuItem item) {
         int id = item.getItemId();
         if (id == R.id.action_settings) {
+            Toast.makeText(this, "Setting Pressed", Toast.LENGTH_SHORT).show();
             return true;
         }
         if (id == R.id.action_refresh){
+            Toast.makeText(this, "Refresh Pressed", Toast.LENGTH_SHORT).show();
             return true;
         }
         return super.onOptionsItemSelected(item);
@@ -161,7 +162,7 @@ public class MainActivity extends AppCompatActivity
         if (id == R.id.nav_setting) {
             Toast.makeText(this, "setting pressed", Toast.LENGTH_SHORT).show();
         } else if (id == R.id.nav_info) {
-            Toast.makeText(this, "info pressed", Toast.LENGTH_SHORT).show();
+            showInfo();
         }
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         drawer.closeDrawer(GravityCompat.START);
@@ -193,9 +194,12 @@ public class MainActivity extends AppCompatActivity
         return mLocation;
     }
 
-    public String getAddressOutput() {
-        return mAddressOutput;
+    private void showInfo() {
+        InfoDialogFragment dialogFragment = new InfoDialogFragment();
+        dialogFragment.show(getSupportFragmentManager(), "info_dialog");
     }
+
+    //gms
 
     @Override
     public void onConnected(Bundle bundle) {

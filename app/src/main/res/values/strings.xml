@@ -6,7 +6,10 @@
     <string name="navigation_drawer_open">Open navigation drawer</string>
     <string name="navigation_drawer_close">Close navigation drawer</string>
     <string name="error_title">Oops!</string>
-    <string name="error_message">There\\\'s an error, please try again.</string>
+    <string name="error_message">Connectivity error, please try again :(</string>
     <string name="not_available">NA</string>
     <string name="no_data">No Data</string>
+    <string name="action_refresh">Refresh</string>
+    <string name="info_title">About</string>
+    <string name="info_message">Thank you for using SkyDrop apps :)</string>
 </resources>
