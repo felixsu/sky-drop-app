@@ -8,6 +8,8 @@ public class HourlyForecast {
     private double mTemperature;
     private double mApparentTemperature;
     private double mPrecipProbability;
+    private double mPrecipIntensity;
+    private String mPrecipType;
 
     public long getTime() {
         return mTime;
@@ -40,4 +42,22 @@ public class HourlyForecast {
     public void setPrecipProbability(double precipProbability) {
         mPrecipProbability = precipProbability;
     }
+
+    public double getPrecipIntensity() {
+        return mPrecipIntensity;
+    }
+
+    public void setPrecipIntensity(double precipIntensity) {
+        mPrecipIntensity = precipIntensity;
+    }
+
+    public String getPrecipType() {
+        return mPrecipType;
+    }
+
+    public void setPrecipType(String precipType) {
+        mPrecipType = precipType;
+    }
 }
+
+

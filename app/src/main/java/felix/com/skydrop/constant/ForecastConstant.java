@@ -28,8 +28,11 @@ public interface ForecastConstant {
     String KEY_HUMIDITY = "humidity";
     String KEY_PRECIP = "precipProbability";
     String KEY_ICON = "icon";
+
     String KEY_DATA = "data";
     String KEY_HOURLY = "hourly";
+    String KEY_PRECIP_INTENSITY = "precipIntensity";
+    String KEY_PRECIP_TYPE = "precipType";
 
 
 }

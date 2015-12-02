@@ -30,7 +30,6 @@ import com.github.mikephil.charting.data.Entry;
 import com.github.mikephil.charting.data.LineData;
 import com.github.mikephil.charting.data.LineDataSet;
 import com.github.mikephil.charting.formatter.ValueFormatter;
-import com.github.mikephil.charting.utils.ViewPortHandler;
 import com.squareup.okhttp.Call;
 import com.squareup.okhttp.Callback;
 import com.squareup.okhttp.OkHttpClient;
@@ -38,7 +37,6 @@ import com.squareup.okhttp.Request;
 import com.squareup.okhttp.Response;
 
 import org.json.JSONException;
-import org.w3c.dom.Text;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -55,6 +53,8 @@ import felix.com.skydrop.constant.Color;
 import felix.com.skydrop.constant.ForecastConstant;
 import felix.com.skydrop.constant.GeocoderConstant;
 import felix.com.skydrop.factory.CurrentWeatherFactory;
+import felix.com.skydrop.formatter.IntegerValueFormatter;
+import felix.com.skydrop.formatter.LevelValueFormatter;
 import felix.com.skydrop.model.CurrentWeather;
 import felix.com.skydrop.model.HourlyForecast;
 import felix.com.skydrop.service.FetchAddressIntentService;
@@ -111,9 +111,6 @@ public class CurrentFragment extends Fragment
     @Bind(R.id.labelRealFeel)
     TextView mRealFeelLabel;
 
-    @Bind(R.id.labelTodaySummary)
-    TextView mLabelTodaySummary;
-
     @Bind(R.id.labelHumidity)
     TextView mHumidityLabel;
 
@@ -123,17 +120,20 @@ public class CurrentFragment extends Fragment
     @Bind(R.id.labelUvIndex)
     TextView mUvIndexLabel;
 
+    @Bind(R.id.labelPressure)
+    TextView mPressureLabel;
+
     @Bind(R.id.labelWindSpeed)
     TextView mWindLabel;
 
     @Bind(R.id.labelWindDirection)
     TextView mWindDirectionLabel;
 
-    @Bind(R.id.labelGraphViewTitle)
-    TextView mGraphViewTitleLabel;
+    @Bind(R.id.labelHourlyTitle)
+    TextView mHourlyTitleLabel;
 
-    @Bind(R.id.labelGraphViewContent)
-    TextView mGraphViewContentLabel;
+    @Bind(R.id.labelHourlyContent)
+    TextView mHourlySummaryLabel;
 
     @Bind(R.id.graphHourly)
     LineChart mLineChart;
@@ -232,6 +232,7 @@ public class CurrentFragment extends Fragment
         List<Entry> actualTempList = new ArrayList<>();
         List<Entry> apparentTempList = new ArrayList<>();
         List<Entry> precipProbList = new ArrayList<>();
+        List<Entry> precipIntensityList = new ArrayList<>();
 
         double minYAxisVal = 200;
         double maxYAxisVal = -100;
@@ -239,14 +240,19 @@ public class CurrentFragment extends Fragment
             actualTempList.add(new Entry((float) Math.round(datas[i].getTemperature()), i));
             apparentTempList.add(new Entry((float) Math.round(datas[i].getApparentTemperature()), i));
             precipProbList.add(new Entry((float) (datas[i].getPrecipProbability() * 100), i));
+            precipIntensityList.add(new Entry((float) (datas[i].getPrecipIntensity()) * 100, i));
         }
 
         LineDataSet actualTempDataSet = new LineDataSet(actualTempList, "actual temp");
-        setUpDataSet(actualTempDataSet, PRIMARY_COLOR);
+        setUpDataSet(actualTempDataSet, PRIMARY_COLOR, false, YAxis.AxisDependency.LEFT);
         LineDataSet apparentTempDataSet = new LineDataSet(apparentTempList, "apparent temp");
-        setUpDataSet(apparentTempDataSet, ACCENT_COLOR);
+        setUpDataSet(apparentTempDataSet, ACCENT_COLOR, false, YAxis.AxisDependency.LEFT);
+
         LineDataSet precipProbDataSet = new LineDataSet(precipProbList, "rain chance");
-        setUpDataSet(precipProbDataSet, PRIMARY_COLOR);
+        setUpDataSet(precipProbDataSet, PRIMARY_COLOR, false, YAxis.AxisDependency.LEFT);
+        LineDataSet precipIntensityDataSet = new LineDataSet(precipIntensityList, "intensity");
+        setUpDataSet(precipIntensityDataSet, ACCENT_COLOR, true, YAxis.AxisDependency.RIGHT);
+
 
         List<LineDataSet> dataSets = new ArrayList<>();
         if (mState.get(CHART_MODE_KEY) == CHART_TEMP_MODE) {
@@ -273,22 +279,43 @@ public class CurrentFragment extends Fragment
             maxYAxisVal = 99;
             precipProbDataSet.setDrawValues(false);
             dataSets.add(precipProbDataSet);
+            dataSets.add(precipIntensityDataSet);
         }
         //init char body
         LineData data = new LineData(xVal, dataSets);
         mLineChart.setData(data);
 
         YAxis axisRight = mLineChart.getAxisRight();
-        axisRight.setEnabled(false);
+
+        if (mState.get(CHART_MODE_KEY) == CHART_TEMP_MODE) {
+            axisRight.setEnabled(false);
+        } else {
+            axisRight.setEnabled(true);
+            axisRight.setValueFormatter(new LevelValueFormatter());
+            axisRight.setLabelCount(3, true);
+            axisRight.setAxisMaxValue(1500);
+            axisRight.setAxisMinValue(0);
+        }
 
         XAxis xAxis = mLineChart.getXAxis();
         xAxis.setPosition(XAxis.XAxisPosition.BOTTOM);
         xAxis.setDrawGridLines(false);
+        xAxis.setAxisLineWidth(2f);
 
         YAxis axisLeft = mLineChart.getAxisLeft();
+        if (mState.get(CHART_MODE_KEY) == CHART_TEMP_MODE) {
+            axisLeft.setAxisMinValue((float) (minYAxisVal - 1d));
+            axisLeft.setAxisMaxValue((float) (maxYAxisVal + 1d));
+            axisLeft.setEnabled(false);
+        } else {
+            axisLeft.setEnabled(true);
+            axisLeft.setAxisMinValue(0f);
+            axisLeft.setAxisMaxValue(100f);
+            axisLeft.setDrawAxisLine(true);
+            axisLeft.setAxisLineWidth(1f);
+        }
 
-        axisLeft.setAxisMinValue((float) (minYAxisVal - 1d));
-        axisLeft.setAxisMaxValue((float) (maxYAxisVal + 1d));
+        axisLeft.setLabelCount(6, false);
         axisLeft.setStartAtZero(false);
         axisLeft.setDrawGridLines(false);
 
@@ -315,24 +342,29 @@ public class CurrentFragment extends Fragment
         mLineChart.invalidate();
     }
 
-    protected void setUpDataSet(LineDataSet lineDataSet, int color) {
-        ValueFormatter formatter = new ValueFormatter() {
-            @Override
-            public String getFormattedValue(float value, Entry entry, int dataSetIndex, ViewPortHandler viewPortHandler) {
-                return String.format("%d", (int) value);
-            }
-        };
-
-        lineDataSet.setAxisDependency(YAxis.AxisDependency.LEFT);
+    protected void setUpDataSet(LineDataSet lineDataSet, int color, boolean drawFill, YAxis.AxisDependency dependency) {
+        ValueFormatter formatter;
+        if (dependency == YAxis.AxisDependency.LEFT) {
+            formatter = new IntegerValueFormatter();
+        } else {
+            formatter = new LevelValueFormatter();
+        }
+        lineDataSet.setAxisDependency(dependency);
         lineDataSet.setLineWidth(3f);
         lineDataSet.setCircleSize(4f);
         lineDataSet.setCircleColor(color);
         lineDataSet.setDrawCircleHole(false);
         lineDataSet.setFillColor(color);
+        lineDataSet.setDrawFilled(drawFill);
         lineDataSet.setColor(color);
         lineDataSet.setValueTextSize(12f);
         lineDataSet.setValueFormatter(formatter);
         lineDataSet.setValueTextColor(color);
+
+        if (drawFill) {
+            lineDataSet.setDrawCircles(false);
+            lineDataSet.setDrawValues(false);
+        }
     }
 
     protected void updateDisplay(CurrentWeather currentWeather) {
@@ -354,21 +386,22 @@ public class CurrentFragment extends Fragment
             mSummaryLabel.setText(currentWeather.getSummary());
             mRealFeelLabel.setText(String.format("Real Feel : %s",
                     ForecastConverter.getString(currentWeather.getApparentTemperature(), true, false)));
-            mLabelTodaySummary.setText(
-                    currentWeather.getTodaySummary());
             //todo get uv index or remove it :(
             mUvIndexLabel.setText("NA");
             mHumidityLabel.setText(String.format
                     ("%s %%", ForecastConverter.getString(currentWeather.getHumidity(), true, true)));
             mPrecipitationLabel.setText(String.format
                     ("%s %%", ForecastConverter.getString(currentWeather.getPrecipProbability(), true, true)));
+            mPressureLabel.setText(String.format
+                    ("%s mbar", ForecastConverter.getString(currentWeather.getPressure(), false, false)));
+
             mWindLabel.setText(String.format
                     ("%s mps", ForecastConverter.getString(currentWeather.getWindSpeed(), false, false)));
             mWindDirectionLabel.setText(ForecastConverter.getDirection(currentWeather.getWindDirection()));
 
             String[] forecast = DecisionFactory.generateForecastDecision(currentWeather.getHourlyForecasts()).split("-", 2);
-            mGraphViewTitleLabel.setText(forecast[0]);
-            mGraphViewContentLabel.setText(forecast[1]);
+            mHourlyTitleLabel.setText(forecast[0]);
+            mHourlySummaryLabel.setText(currentWeather.getHourSummary());
 
             drawChart();
             mLineChart.setVisibility(View.VISIBLE);
@@ -382,16 +415,15 @@ public class CurrentFragment extends Fragment
             mSummaryLabel.setText(R.string.not_available);
             mRealFeelLabel.setText(R.string.not_available);
 
-            mLabelTodaySummary.setText("please refresh.....");
-
             mUvIndexLabel.setText(R.string.not_available);
             mHumidityLabel.setText(R.string.not_available);
             mPrecipitationLabel.setText(R.string.not_available);
+            mPressureLabel.setText(R.string.not_available);
             mWindLabel.setText(R.string.not_available);
             mWindDirectionLabel.setText(R.string.not_available);
 
-            mGraphViewTitleLabel.setText(R.string.not_available);
-            mGraphViewContentLabel.setText(R.string.not_available);
+            mHourlyTitleLabel.setText(R.string.not_available);
+            mHourlySummaryLabel.setText(R.string.not_available);
 
             mLineChart.setVisibility(View.GONE);
             mLineChartEmptyLabel.setVisibility(View.VISIBLE);

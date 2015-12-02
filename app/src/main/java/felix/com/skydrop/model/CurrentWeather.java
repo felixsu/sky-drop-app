@@ -8,7 +8,6 @@ import felix.com.skydrop.constant.ForecastConstant;
 
 /**
  * Created by fsoewito on 11/26/2015.
- *
  */
 public class CurrentWeather extends BaseWeather implements ForecastConstant {
     public static final int FORECAST_DISPLAYED = 6;
@@ -25,7 +24,8 @@ public class CurrentWeather extends BaseWeather implements ForecastConstant {
     protected double mWindDirection;
     protected double mPressure;
     protected double mPrecipProbability;
-    protected String mTodaySummary;
+    protected String mHourSummary;
+
     protected HourlyForecast[] mHourlyForecasts;
 
     public long getTime() {
@@ -108,12 +108,12 @@ public class CurrentWeather extends BaseWeather implements ForecastConstant {
         mPrecipProbability = precipProbability;
     }
 
-    public String getTodaySummary() {
-        return mTodaySummary;
+    public String getHourSummary() {
+        return mHourSummary;
     }
 
-    public void setTodaySummary(String todaySummary) {
-        mTodaySummary = todaySummary;
+    public void setHourSummary(String hourSummary) {
+        mHourSummary = hourSummary;
     }
 
     public HourlyForecast[] getHourlyForecasts() {
@@ -145,7 +145,7 @@ public class CurrentWeather extends BaseWeather implements ForecastConstant {
         if (container.has(KEY_INITIALIZED)) {
             setInitialized(container.getBoolean(KEY_INITIALIZED));
             setAddress(container.getString(KEY_ADDRESS));
-        }else{
+        } else {
             setInitialized(true);
             setAddress("Location N/A");
         }
@@ -166,24 +166,32 @@ public class CurrentWeather extends BaseWeather implements ForecastConstant {
         setPressure(current.getDouble(KEY_PRESSURE));
 
         JSONObject hourly = container.getJSONObject(KEY_HOURLY);
-        setTodaySummary(hourly.getString(KEY_SUMMARY));
+        setHourSummary(hourly.getString(KEY_SUMMARY));
 
         JSONArray hourlyData = hourly.getJSONArray(KEY_DATA);
         HourlyForecast[] hourlyForecasts = new HourlyForecast[hourlyData.length()];
 
-        for (int i = 0 ; i<FORECAST_DISPLAYED; i++){
+        for (int i = 0; i < FORECAST_DISPLAYED; i++) {
             HourlyForecast d = new HourlyForecast();
             JSONObject o = hourlyData.getJSONObject(i);
             d.setPrecipProbability(o.getDouble(KEY_PRECIP));
             d.setTemperature(o.getDouble(KEY_TEMPERATURE));
             d.setApparentTemperature(o.getDouble(KEY_APPARENT_TEMPERATURE));
             d.setTime(o.getLong(KEY_TIME));
+            double rawIntensity = o.getDouble(KEY_PRECIP_INTENSITY);
+            double processedIntensity = (rawIntensity > 1500 ? 1500 : rawIntensity);
+            d.setPrecipIntensity(processedIntensity);
+            if (o.has(KEY_PRECIP_TYPE)) {
+                d.setPrecipType(o.getString(KEY_PRECIP_TYPE));
+            } else {
+                d.setPrecipType(null);
+            }
             hourlyForecasts[i] = d;
         }
         setHourlyForecasts(hourlyForecasts);
     }
 
-    public String toJson(){
+    public String toJson() {
         JSONObject result = new JSONObject();
         try {
             result.put(KEY_ADDRESS, getAddress());
@@ -206,14 +214,18 @@ public class CurrentWeather extends BaseWeather implements ForecastConstant {
             result.put(KEY_CURRENT, current);
 
             JSONObject hourly = new JSONObject();
-            hourly.put(KEY_SUMMARY, getTodaySummary());
+            hourly.put(KEY_SUMMARY, getHourSummary());
             JSONArray hourlyArray = new JSONArray();
-            for (int i = 0; i< FORECAST_DISPLAYED; i++){
+            for (int i = 0; i < FORECAST_DISPLAYED; i++) {
                 JSONObject o = new JSONObject();
                 o.put(KEY_TIME, getHourlyForecasts()[i].getTime());
                 o.put(KEY_TEMPERATURE, getHourlyForecasts()[i].getTemperature());
                 o.put(KEY_APPARENT_TEMPERATURE, getHourlyForecasts()[i].getApparentTemperature());
                 o.put(KEY_PRECIP, getHourlyForecasts()[i].getPrecipProbability());
+                o.put(KEY_PRECIP_INTENSITY, getHourlyForecasts()[i].getPrecipIntensity());
+                if (getHourlyForecasts()[i].getPrecipType() != null) {
+                    o.put(KEY_PRECIP_TYPE, getHourlyForecasts()[i].getPrecipType());
+                }
                 hourlyArray.put(i, o);
             }
             hourly.put(KEY_DATA, hourlyArray);

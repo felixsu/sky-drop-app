@@ -10,7 +10,7 @@ public class CurrentWeatherFactory {
     public static CurrentWeather getInstance(){
         CurrentWeather currentWeather = new CurrentWeather();
         currentWeather.setInitialized(false);
-        currentWeather.setTodaySummary("none");
+        currentWeather.setHourSummary("none");
         currentWeather.setIcon("clear-day");
         currentWeather.setSummary("none");
         currentWeather.setTimezone("");
