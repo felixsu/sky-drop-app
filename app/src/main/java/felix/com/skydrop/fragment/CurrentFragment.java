@@ -399,8 +399,8 @@ public class CurrentFragment extends Fragment
                     ("%s mps", ForecastConverter.getString(currentWeather.getWindSpeed(), false, false)));
             mWindDirectionLabel.setText(ForecastConverter.getDirection(currentWeather.getWindDirection()));
 
-            String[] forecast = DecisionFactory.generateForecastDecision(currentWeather.getHourlyForecasts()).split("-", 2);
-            mHourlyTitleLabel.setText(forecast[0]);
+            //String[] forecast = DecisionFactory.generateForecastDecision(currentWeather.getHourlyForecasts()).split("-", 2);
+            mHourlyTitleLabel.setText("Forecast");
             mHourlySummaryLabel.setText(currentWeather.getHourSummary());
 
             drawChart();
@@ -422,7 +422,7 @@ public class CurrentFragment extends Fragment
             mWindLabel.setText(R.string.not_available);
             mWindDirectionLabel.setText(R.string.not_available);
 
-            mHourlyTitleLabel.setText(R.string.not_available);
+            mHourlyTitleLabel.setText("Forecast");
             mHourlySummaryLabel.setText(R.string.not_available);
 
             mLineChart.setVisibility(View.GONE);

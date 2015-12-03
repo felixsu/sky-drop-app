@@ -155,23 +155,23 @@
                     <TextView
                         android:id="@+id/labelHourlyContent"
                         android:layout_width="match_parent"
-                        android:layout_below="@id/labelHourlyTitle"
                         android:layout_height="wrap_content"
+                        android:layout_below="@id/labelHourlyTitle"
+                        android:maxLines="3"
                         android:paddingBottom="@dimen/activity_vertical_margin"
-                        android:text="Content la la la la la la la la to be filled"
-                        android:maxLines="3"/>
+                        android:text="Content la la la la la la la la to be filled"/>
 
                     <com.github.mikephil.charting.charts.LineChart
-                        android:paddingTop="@dimen/activity_vertical_margin"
                         android:id="@+id/graphHourly"
                         android:layout_width="match_parent"
-                        android:layout_height="160dp"
-                        android:layout_below="@id/labelHourlyContent"/>
+                        android:layout_height="128dp"
+                        android:layout_below="@id/labelHourlyContent"
+                        android:paddingTop="@dimen/activity_vertical_margin"/>
 
                     <TextView
                         android:id="@+id/labelGraphViewEmpty"
                         android:layout_width="match_parent"
-                        android:layout_height="160dp"
+                        android:layout_height="128dp"
                         android:layout_below="@id/labelHourlyContent"
                         android:gravity="center"
                         android:text="@string/no_data"/>
@@ -212,6 +212,7 @@
                         android:layout_width="112dp"
                         android:layout_height="wrap_content"
                         android:layout_below="@id/labelAdditionalParameter"
+                        android:paddingBottom="4dp"
                         android:text="UV Index"/>
 
                     <TextView
@@ -219,6 +220,7 @@
                         android:layout_width="112dp"
                         android:layout_height="wrap_content"
                         android:layout_below="@id/labelUvIndexTitle"
+                        android:paddingBottom="4dp"
                         android:text="Humidity"/>
 
                     <TextView
@@ -226,6 +228,7 @@
                         android:layout_width="112dp"
                         android:layout_height="wrap_content"
                         android:layout_below="@id/labelHumidityTitle"
+                        android:paddingBottom="4dp"
                         android:text="Precipitation"/>
 
                     <TextView
@@ -233,13 +236,15 @@
                         android:layout_width="112dp"
                         android:layout_height="wrap_content"
                         android:layout_below="@id/labelPrecipitationTitle"
+                        android:paddingBottom="4dp"
                         android:text="Pressure"/>
 
                     <TextView
                         android:id="@+id/labelUvIndex"
                         android:layout_width="48dp"
                         android:layout_height="wrap_content"
-                        android:layout_below="@id/labelAdditionalParameter"
+                        android:layout_alignTop="@id/labelUvIndexTitle"
+                        android:layout_alignBottom="@id/labelUvIndexTitle"
                         android:layout_toRightOf="@id/labelUvIndexTitle"
                         tools:text="Low"/>
 
@@ -247,7 +252,9 @@
                         android:id="@+id/labelHumidity"
                         android:layout_width="48dp"
                         android:layout_height="wrap_content"
-                        android:layout_below="@id/labelUvIndex"
+                        android:layout_alignTop="@id/labelHumidityTitle"
+                        android:layout_alignBottom="@id/labelHumidityTitle"
+                        android:paddingBottom="8dp"
                         android:layout_toRightOf="@id/labelHumidityTitle"
                         tools:text="70%"/>
 
@@ -255,7 +262,9 @@
                         android:id="@+id/labelPrecipitation"
                         android:layout_width="48dp"
                         android:layout_height="wrap_content"
-                        android:layout_below="@id/labelHumidity"
+                        android:paddingBottom="8dp"
+                        android:layout_alignTop="@id/labelPrecipitationTitle"
+                        android:layout_alignBottom="@id/labelPrecipitationTitle"
                         android:layout_toRightOf="@id/labelPrecipitationTitle"
                         tools:text="0.6"/>
 
@@ -263,7 +272,8 @@
                         android:id="@+id/labelPressure"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_below="@id/labelPrecipitation"
+                        android:layout_alignTop="@id/labelPressureTitle"
+                        android:layout_alignBottom="@id/labelPressureTitle"
                         android:layout_toRightOf="@id/labelPressureTitle"
                         tools:text="0.6"/>
 
@@ -272,7 +282,8 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_alignParentRight="true"
-                        android:layout_below="@id/labelAdditionalParameter"
+                        android:layout_alignTop="@id/labelUvIndexTitle"
+                        android:layout_alignBottom="@id/labelUvIndexTitle"
                         android:layout_toRightOf="@+id/labelUvIndex"
                         android:text="Wind"
                         android:textStyle="bold"/>
@@ -282,7 +293,8 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_alignParentRight="true"
-                        android:layout_below="@id/labelWindTitle"
+                        android:layout_alignTop="@id/labelHumidityTitle"
+                        android:layout_alignBottom="@id/labelHumidityTitle"
                         tools:text="SSE"/>
 
                     <TextView
@@ -290,14 +302,16 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_alignParentRight="true"
-                        android:layout_below="@id/labelWindDirection"
+                        android:layout_alignTop="@id/labelPrecipitationTitle"
+                        android:layout_alignBottom="@id/labelPrecipitationTitle"
                         tools:text="9 mps"/>
 
                     <TextView
                         android:id="@+id/labelWindDirectionTitle"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_below="@id/labelWindTitle"
+                        android:layout_alignTop="@id/labelHumidityTitle"
+                        android:layout_alignBottom="@id/labelHumidityTitle"
                         android:layout_toLeftOf="@id/labelWindDirection"
                         android:layout_toRightOf="@+id/labelHumidity"
                         android:text="Direction"/>
@@ -306,7 +320,8 @@
                         android:id="@+id/labelWindSpeedTitle"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_below="@id/labelWindDirectionTitle"
+                        android:layout_alignTop="@id/labelPrecipitationTitle"
+                        android:layout_alignBottom="@id/labelPrecipitationTitle"
                         android:layout_toLeftOf="@id/labelWindSpeed"
                         android:layout_toRightOf="@+id/labelPrecipitation"
                         android:text="Speed"/>
