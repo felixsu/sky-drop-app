@@ -3,14 +3,15 @@ package felix.com.skydrop.constant;
 /**
  * Created by fsoewito on 11/26/2015.
  */
-public interface ForecastConstant {
+public interface WeatherConstant {
     String url = "https://api.forecast.io/forecast";
     String apiKey = "5c150722b10107dcbd3b1c60931cacc9";
 
-    String FORECAST_PREFERENCES = "forecast_preferences";
-    String KEY_IS_INIT = "key_isInit";
+    String KEY = "forecast_key";
+    //master data
     String KEY_CURRENT_WEATHER = "key_weatherData";
 
+    //data
     String KEY_ADDRESS = "address";
     String KEY_INITIALIZED = "initialized";
     String KEY_TIMEZONE = "timezone";

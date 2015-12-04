@@ -12,4 +12,5 @@
     <string name="action_refresh">Refresh</string>
     <string name="info_title">About</string>
     <string name="info_message">Thank you for using SkyDrop apps :)</string>
+    <string name="title_activity_splash">SplashActivity</string>
 </resources>

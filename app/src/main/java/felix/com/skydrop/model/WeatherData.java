@@ -4,12 +4,12 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import felix.com.skydrop.constant.ForecastConstant;
+import felix.com.skydrop.constant.WeatherConstant;
 
 /**
  * Created by fsoewito on 11/26/2015.
  */
-public class CurrentWeather extends BaseWeather implements ForecastConstant {
+public class WeatherData extends BaseWeather implements WeatherConstant {
     public static final int FORECAST_DISPLAYED = 6;
 
     protected String address;
@@ -178,6 +178,10 @@ public class CurrentWeather extends BaseWeather implements ForecastConstant {
             d.setTemperature(o.getDouble(KEY_TEMPERATURE));
             d.setApparentTemperature(o.getDouble(KEY_APPARENT_TEMPERATURE));
             d.setTime(o.getLong(KEY_TIME));
+            d.setSummary(o.getString(KEY_SUMMARY));
+            d.setWindSpeed(o.getDouble(KEY_WIND_SPEED));
+            d.setWindDirection(o.getDouble(KEY_WIND_DIRECTION));
+
             double rawIntensity = o.getDouble(KEY_PRECIP_INTENSITY);
             double processedIntensity = (rawIntensity > 1500 ? 1500 : rawIntensity);
             d.setPrecipIntensity(processedIntensity);
@@ -223,6 +227,9 @@ public class CurrentWeather extends BaseWeather implements ForecastConstant {
                 o.put(KEY_APPARENT_TEMPERATURE, getHourlyForecasts()[i].getApparentTemperature());
                 o.put(KEY_PRECIP, getHourlyForecasts()[i].getPrecipProbability());
                 o.put(KEY_PRECIP_INTENSITY, getHourlyForecasts()[i].getPrecipIntensity());
+                o.put(KEY_SUMMARY, getHourlyForecasts()[i].getSummary());
+                o.put(KEY_WIND_SPEED, getHourlyForecasts()[i].getWindSpeed());
+                o.put(KEY_WIND_DIRECTION, getHourlyForecasts()[i].getWindDirection());
                 if (getHourlyForecasts()[i].getPrecipType() != null) {
                     o.put(KEY_PRECIP_TYPE, getHourlyForecasts()[i].getPrecipType());
                 }

@@ -1,11 +1,14 @@
 package felix.com.skydrop.activity;
 
+import android.content.Context;
+import android.content.SharedPreferences;
 import android.location.Location;
 import android.os.Bundle;
 import android.support.design.widget.NavigationView;
+import android.support.design.widget.TabLayout;
 import android.support.v4.app.FragmentManager;
-import android.support.v4.app.FragmentTransaction;
 import android.support.v4.view.GravityCompat;
+import android.support.v4.view.ViewPager;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
@@ -24,18 +27,26 @@ import com.google.android.gms.location.LocationListener;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
 
+import org.json.JSONException;
+
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
 import felix.com.skydrop.R;
-import felix.com.skydrop.constant.ForecastConstant;
-import felix.com.skydrop.fragment.CurrentFragment;
+import felix.com.skydrop.adapter.SectionsPagerAdapter;
+import felix.com.skydrop.constant.ApplicationDataConstant;
+import felix.com.skydrop.constant.WeatherConstant;
+import felix.com.skydrop.constant.SettingConstant;
+import felix.com.skydrop.factory.ApplicationDataFactory;
+import felix.com.skydrop.factory.WeatherFactory;
 import felix.com.skydrop.fragment.InfoDialogFragment;
+import felix.com.skydrop.model.ApplicationData;
+import felix.com.skydrop.model.WeatherData;
 
 public class MainActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener,
         GoogleApiClient.ConnectionCallbacks,
-        GoogleApiClient.OnConnectionFailedListener, ForecastConstant,
+        GoogleApiClient.OnConnectionFailedListener,
         LocationListener{
 
     private static final String TAG = MainActivity.class.getSimpleName();
@@ -48,17 +59,39 @@ public class MainActivity extends AppCompatActivity
     private GoogleApiClient mGoogleApiClient;
     private boolean mRequestingLocation = false;
 
-    DrawerLayout mDrawer;
-    FragmentManager mFragmentManager;
+    //view
+    private DrawerLayout mDrawer;
+    private FragmentManager mFragmentManager;
+    private ViewPager mViewPager;
+    private SectionsPagerAdapter mSectionsPagerAdapter;
 
+    //data
+    private WeatherData mWeatherData;
+    private ApplicationData mApplicationData;
+
+    public WeatherData getWeatherData() {
+        return mWeatherData;
+    }
+
+    public void setWeatherData(WeatherData weatherData) {
+        mWeatherData = weatherData;
+    }
+
+    public ApplicationData getApplicationData() {
+        return mApplicationData;
+    }
+
+    public void setApplicationData(ApplicationData applicationData) {
+        mApplicationData = applicationData;
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         initView();
-        updateState(savedInstanceState);
         initField();
+        updateState(savedInstanceState);
         if (checkGooglePlayServices()) {
             Log.i(TAG, "gms available");
             buildGoogleApiClient();
@@ -79,12 +112,30 @@ public class MainActivity extends AppCompatActivity
         navigationView.setNavigationItemSelectedListener(this);
 
         mFragmentManager = getSupportFragmentManager();
-        FragmentTransaction fragmentTransaction = mFragmentManager.beginTransaction();
-        CurrentFragment currentFragment = new CurrentFragment();
-        fragmentTransaction.add(R.id.fragmentContainer, currentFragment);
-        fragmentTransaction.commit();
+        mSectionsPagerAdapter = new SectionsPagerAdapter(mFragmentManager);
+        mViewPager = (ViewPager) findViewById(R.id.view_pager);
+        mViewPager.setAdapter(mSectionsPagerAdapter);
+
+        TabLayout tabLayout = (TabLayout) findViewById(R.id.tabs);
+        tabLayout.setupWithViewPager(mViewPager);
+
     }
     private void initField(){
+        SharedPreferences applicationData = getSharedPreferences(ApplicationDataConstant.KEY, Context.MODE_PRIVATE);
+        SharedPreferences settingData = getSharedPreferences(SettingConstant.KEY, Context.MODE_PRIVATE);
+        SharedPreferences weatherData = getSharedPreferences(WeatherConstant.KEY, Context.MODE_PRIVATE);
+
+        try {
+            mApplicationData = ApplicationDataFactory.getInstance(applicationData);
+            if (mApplicationData.isInitialized()) {
+                mWeatherData = WeatherFactory.getInstance(weatherData);
+            } else {
+                mWeatherData = WeatherFactory.getInstance();
+            }
+        } catch (JSONException e) {
+            e.printStackTrace();
+            Log.e(TAG, "parsing error");
+        }
     }
 
     private void updateState(Bundle savedState){
@@ -117,6 +168,17 @@ public class MainActivity extends AppCompatActivity
         }else{
             Log.i(TAG, "header null");
         }
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        SharedPreferences.Editor applicationDataEditor = getSharedPreferences(ApplicationDataConstant.KEY, Context.MODE_PRIVATE).edit();
+        SharedPreferences.Editor settingDataEditor = getSharedPreferences(SettingConstant.KEY, Context.MODE_PRIVATE).edit();
+        SharedPreferences.Editor weatherDataEditor = getSharedPreferences(WeatherConstant.KEY, Context.MODE_PRIVATE).edit();
+
+        applicationDataEditor.putBoolean(ApplicationDataConstant.INIT, getApplicationData().isInitialized()).apply();
+        weatherDataEditor.putString(WeatherConstant.KEY_CURRENT_WEATHER, getWeatherData().toJson()).apply();
     }
 
     @Override
@@ -200,7 +262,6 @@ public class MainActivity extends AppCompatActivity
     }
 
     //gms
-
     @Override
     public void onConnected(Bundle bundle) {
         Log.i(TAG, "entering on connected gms");

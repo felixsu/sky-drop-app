@@ -1,6 +1,6 @@
 package felix.com.skydrop.util;
 
-import felix.com.skydrop.model.CurrentWeather;
+import felix.com.skydrop.model.WeatherData;
 import felix.com.skydrop.model.HourlyForecast;
 
 /**
@@ -27,9 +27,9 @@ public class DecisionFactory {
     private static final String IT_WILL_BE_EXTREMELY_COLD = "get inside your blanket in few hours, don't get flu";
 
     public static String generateForecastDecision(HourlyForecast[] hourlyForecasts) {
-        double precipProbArray[] = new double[CurrentWeather.FORECAST_DISPLAYED];
-        double tempArray[] = new double[CurrentWeather.FORECAST_DISPLAYED];
-        for (int i = 0; i < CurrentWeather.FORECAST_DISPLAYED; i++) {
+        double precipProbArray[] = new double[WeatherData.FORECAST_DISPLAYED];
+        double tempArray[] = new double[WeatherData.FORECAST_DISPLAYED];
+        for (int i = 0; i < WeatherData.FORECAST_DISPLAYED; i++) {
             precipProbArray[i] = hourlyForecasts[i].getPrecipProbability()*100;
             tempArray[i] = hourlyForecasts[i].getTemperature();
         }

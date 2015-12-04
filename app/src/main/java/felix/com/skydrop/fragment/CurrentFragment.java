@@ -50,15 +50,15 @@ import felix.com.skydrop.R;
 import felix.com.skydrop.Receiver.AddressResultReceiver;
 import felix.com.skydrop.activity.MainActivity;
 import felix.com.skydrop.constant.Color;
-import felix.com.skydrop.constant.ForecastConstant;
+import felix.com.skydrop.constant.WeatherConstant;
 import felix.com.skydrop.constant.GeocoderConstant;
-import felix.com.skydrop.factory.CurrentWeatherFactory;
+import felix.com.skydrop.factory.WeatherFactory;
 import felix.com.skydrop.formatter.IntegerValueFormatter;
 import felix.com.skydrop.formatter.LevelValueFormatter;
-import felix.com.skydrop.model.CurrentWeather;
+import felix.com.skydrop.model.ApplicationData;
+import felix.com.skydrop.model.WeatherData;
 import felix.com.skydrop.model.HourlyForecast;
 import felix.com.skydrop.service.FetchAddressIntentService;
-import felix.com.skydrop.util.DecisionFactory;
 import felix.com.skydrop.util.ForecastConverter;
 
 /**
@@ -66,7 +66,7 @@ import felix.com.skydrop.util.ForecastConverter;
  *
  */
 public class CurrentFragment extends Fragment
-        implements SwipeRefreshLayout.OnRefreshListener, ForecastConstant, AddressResultReceiver.Receiver, Color {
+        implements SwipeRefreshLayout.OnRefreshListener, WeatherConstant, AddressResultReceiver.Receiver, Color {
     private static final String TAG = CurrentFragment.class.getSimpleName();
 
     private static final String CHART_MODE_KEY = "chart_mode";
@@ -79,7 +79,8 @@ public class CurrentFragment extends Fragment
     private AddressResultReceiver mResultReceiver;
     String mAddress = "Location N/A";
 
-    CurrentWeather mCurrentWeather;
+    WeatherData mWeatherData;
+    ApplicationData mApplicationData;
     HashMap<String, Integer> mState;
 
     //root view
@@ -145,7 +146,7 @@ public class CurrentFragment extends Fragment
     @Nullable
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        mLayout = inflater.inflate(R.layout.layout_current_weather, container, false);
+        mLayout = inflater.inflate(R.layout.fragment_current_weather, container, false);
         ButterKnife.bind(this, mLayout);
         initData();
         initView();
@@ -165,13 +166,6 @@ public class CurrentFragment extends Fragment
         if (mResultReceiver.getReceiver() != null){
             mResultReceiver.setReceiver(null);
         }
-        if (mCurrentWeather.isInitialized()) {
-            SharedPreferences preferences = mActivity.getSharedPreferences(FORECAST_PREFERENCES, Context.MODE_PRIVATE);
-            SharedPreferences.Editor preferencesEditor = preferences.edit();
-            preferencesEditor.putBoolean(KEY_IS_INIT, true);
-            preferencesEditor.putString(KEY_CURRENT_WEATHER, mCurrentWeather.toJson());
-            preferencesEditor.apply();
-        }
         super.onPause();
     }
 
@@ -188,24 +182,18 @@ public class CurrentFragment extends Fragment
     }
 
     protected void initData() {
-        mCurrentWeather = CurrentWeatherFactory.getInstance();
+
         mActivity = (MainActivity) getActivity();
         mResultReceiver = new AddressResultReceiver(new Handler());
         mResultReceiver.setReceiver(this);
         mState = new HashMap<>();
         mState.put(CHART_MODE_KEY, CHART_TEMP_MODE);
-        SharedPreferences preferences = mActivity.getSharedPreferences(FORECAST_PREFERENCES, Context.MODE_PRIVATE);
-        if (preferences.getBoolean(KEY_IS_INIT, false)) {
-            try {
-                mCurrentWeather.getFromJson(preferences.getString(KEY_CURRENT_WEATHER, ""));
-            } catch (JSONException e) {
-                e.printStackTrace();
-            }
-        }
+        mWeatherData = mActivity.getWeatherData();
+        mApplicationData = mActivity.getApplicationData();
     }
 
     protected void initView() {
-        updateDisplay(mCurrentWeather);
+        updateDisplay(mWeatherData);
         mRefreshLayout.setOnRefreshListener(this);
         mRefreshLayout.setColorSchemeColors(RED, BLUE, YELLOW, GREEN);
 
@@ -219,12 +207,12 @@ public class CurrentFragment extends Fragment
     }
 
     private void drawChart() {
-        HourlyForecast[] datas = mCurrentWeather.getHourlyForecasts();
+        HourlyForecast[] datas = mWeatherData.getHourlyForecasts();
         //init label
         List<String> xVal = new ArrayList<>();
-        for (int i = 0; i < CurrentWeather.FORECAST_DISPLAYED; i++) {
+        for (int i = 0; i < WeatherData.FORECAST_DISPLAYED; i++) {
             xVal.add(ForecastConverter.getString(
-                    datas[i].getTime(), mCurrentWeather.getTimezone(),
+                    datas[i].getTime(), mWeatherData.getTimezone(),
                     ForecastConverter.SHORT_MODE));
         }
 
@@ -236,7 +224,7 @@ public class CurrentFragment extends Fragment
 
         double minYAxisVal = 200;
         double maxYAxisVal = -100;
-        for (int i = 0; i < CurrentWeather.FORECAST_DISPLAYED; i++) {
+        for (int i = 0; i < WeatherData.FORECAST_DISPLAYED; i++) {
             actualTempList.add(new Entry((float) Math.round(datas[i].getTemperature()), i));
             apparentTempList.add(new Entry((float) Math.round(datas[i].getApparentTemperature()), i));
             precipProbList.add(new Entry((float) (datas[i].getPrecipProbability() * 100), i));
@@ -256,9 +244,9 @@ public class CurrentFragment extends Fragment
 
         List<LineDataSet> dataSets = new ArrayList<>();
         if (mState.get(CHART_MODE_KEY) == CHART_TEMP_MODE) {
-            for (int i = 0; i < CurrentWeather.FORECAST_DISPLAYED; i++) {
-                double val = mCurrentWeather.getHourlyForecasts()[i].getTemperature();
-                double val2 = mCurrentWeather.getHourlyForecasts()[i].getApparentTemperature();
+            for (int i = 0; i < WeatherData.FORECAST_DISPLAYED; i++) {
+                double val = mWeatherData.getHourlyForecasts()[i].getTemperature();
+                double val2 = mWeatherData.getHourlyForecasts()[i].getApparentTemperature();
                 if (minYAxisVal > val) {
                     minYAxisVal = val;
                 }
@@ -367,41 +355,41 @@ public class CurrentFragment extends Fragment
         }
     }
 
-    protected void updateDisplay(CurrentWeather currentWeather) {
+    protected void updateDisplay(WeatherData weatherData) {
         ColorFilter filter = new LightingColorFilter(BLACK, 0xFF3F51B5);
-        Drawable drawable = mActivity.getResources().getDrawable(ForecastConverter.getIcon(currentWeather.getIcon()));
+        Drawable drawable = mActivity.getResources().getDrawable(ForecastConverter.getIcon(weatherData.getIcon()));
         if (drawable != null) {
             drawable.setColorFilter(filter);
         }
 
-        if (currentWeather.isInitialized()) {
+        if (weatherData.isInitialized()) {
             mIconWeather.setImageDrawable(drawable);
-            mTemperatureLabel.setText(ForecastConverter.getString(currentWeather.getTemperature(), true, false));
-            mAddressLabel.setText(currentWeather.getAddress());
-            String time = ForecastConverter.getString(currentWeather.getTime(),
-                    currentWeather.getTimezone(), ForecastConverter.LONG_MODE);
+            mTemperatureLabel.setText(ForecastConverter.getString(weatherData.getTemperature(), true, false));
+            mAddressLabel.setText(weatherData.getAddress());
+            String time = ForecastConverter.getString(weatherData.getTime(),
+                    weatherData.getTimezone(), ForecastConverter.LONG_MODE);
             mTimeLabel.setText(time.substring(0, time.length() - 2));
             mTimeLabelProperties.setText(time.substring(time.length() - 2, time.length()));
 
-            mSummaryLabel.setText(currentWeather.getSummary());
+            mSummaryLabel.setText(weatherData.getSummary());
             mRealFeelLabel.setText(String.format("Real Feel : %s",
-                    ForecastConverter.getString(currentWeather.getApparentTemperature(), true, false)));
+                    ForecastConverter.getString(weatherData.getApparentTemperature(), true, false)));
             //todo get uv index or remove it :(
             mUvIndexLabel.setText("NA");
             mHumidityLabel.setText(String.format
-                    ("%s %%", ForecastConverter.getString(currentWeather.getHumidity(), true, true)));
+                    ("%s %%", ForecastConverter.getString(weatherData.getHumidity(), true, true)));
             mPrecipitationLabel.setText(String.format
-                    ("%s %%", ForecastConverter.getString(currentWeather.getPrecipProbability(), true, true)));
+                    ("%s %%", ForecastConverter.getString(weatherData.getPrecipProbability(), true, true)));
             mPressureLabel.setText(String.format
-                    ("%s mbar", ForecastConverter.getString(currentWeather.getPressure(), false, false)));
+                    ("%s mbar", ForecastConverter.getString(weatherData.getPressure(), false, false)));
 
             mWindLabel.setText(String.format
-                    ("%s mps", ForecastConverter.getString(currentWeather.getWindSpeed(), false, false)));
-            mWindDirectionLabel.setText(ForecastConverter.getDirection(currentWeather.getWindDirection()));
+                    ("%s mps", ForecastConverter.getString(weatherData.getWindSpeed(), false, false)));
+            mWindDirectionLabel.setText(ForecastConverter.getDirection(weatherData.getWindDirection()));
 
-            //String[] forecast = DecisionFactory.generateForecastDecision(currentWeather.getHourlyForecasts()).split("-", 2);
+            //String[] forecast = DecisionFactory.generateForecastDecision(weatherData.getHourlyForecasts()).split("-", 2);
             mHourlyTitleLabel.setText("Forecast");
-            mHourlySummaryLabel.setText(currentWeather.getHourSummary());
+            mHourlySummaryLabel.setText(weatherData.getHourSummary());
 
             drawChart();
             mLineChart.setVisibility(View.VISIBLE);
@@ -473,7 +461,8 @@ public class CurrentFragment extends Fragment
                         String jsonData = response.body().string();
                         Log.v(TAG, response.body().string());
                         if (response.isSuccessful()) {
-                            mCurrentWeather.getFromJson(jsonData);
+                            mApplicationData.setInitialized(true);
+                            mWeatherData.getFromJson(jsonData);
                             startIntentService();
                         } else {
                             //todo optimize
@@ -481,19 +470,22 @@ public class CurrentFragment extends Fragment
                             mActivity.runOnUiThread(new Runnable() {
                                 @Override
                                 public void run() {
-                                    updateDisplay(mCurrentWeather);
+                                    updateDisplay(mWeatherData);
                                     mRefreshLayout.setRefreshing(false);
                                 }
                             });
                         }
                     } catch (IOException e) {
                         Log.e(TAG, "Exception caught", e);
+                        mRefreshLayout.setRefreshing(false);
                     } catch (JSONException e) {
                         Log.e(TAG, "JSON exception caught", e);
+                        mRefreshLayout.setRefreshing(false);
                     }
                 }
             });
         } else {
+            mRefreshLayout.setRefreshing(false);
             Toast.makeText(mActivity, "Network not available", Toast.LENGTH_LONG).show();
         }
     }
@@ -515,11 +507,11 @@ public class CurrentFragment extends Fragment
             Log.i(TAG, "geocoder unsuccessful");
             mAddress = "Location N/A";
         }
-        mCurrentWeather.setAddress(mAddress);
+        mWeatherData.setAddress(mAddress);
         mActivity.runOnUiThread(new Runnable() {
             @Override
             public void run() {
-                updateDisplay(mCurrentWeather);
+                updateDisplay(mWeatherData);
                 mRefreshLayout.setRefreshing(false);
             }
         });
