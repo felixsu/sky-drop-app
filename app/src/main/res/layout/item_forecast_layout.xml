@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+                xmlns:tools="http://schemas.android.com/tools"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_margin="@dimen/card_margin">
+
+        <TextView
+            android:id="@+id/item_label_time"
+            android:layout_width="72dp"
+            android:layout_height="72dp"
+            android:gravity="center"
+            android:textSize="21sp"
+            android:textStyle="bold"
+            tools:background="@android:color/holo_blue_bright"
+            tools:text="10 PM"/>
+
+        <RelativeLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignBottom="@id/item_label_time"
+            android:layout_alignTop="@id/item_label_time"
+            android:layout_toRightOf="@id/item_label_time"
+            android:paddingLeft="8dp">
+
+
+            <ImageView
+                android:id="@+id/item_icon_forecast"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:adjustViewBounds="true"
+                android:scaleType="fitXY"
+                tools:src="@drawable/ic_weather_sunny"/>
+
+            <TextView
+                android:id="@+id/item_label_temperature"
+                android:layout_width="48dp"
+                android:layout_height="wrap_content"
+                android:layout_alignBottom="@id/item_icon_forecast"
+                android:layout_alignParentRight="true"
+                android:layout_alignTop="@id/item_icon_forecast"
+                android:gravity="center_vertical"
+                android:text="28°"
+                android:textSize="24sp"/>
+
+            <RelativeLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignBottom="@id/item_icon_forecast"
+                android:layout_alignTop="@id/item_icon_forecast"
+                android:layout_toLeftOf="@+id/item_label_temperature"
+                android:layout_toRightOf="@id/item_icon_forecast"
+                android:gravity="center_vertical"
+                android:paddingLeft="16dp">
+
+                <TextView
+                    android:id="@+id/item_label_summary"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textSize="24sp"
+                    tools:text="clear"/>
+
+                <TextView
+                    android:id="@+id/item_label_precip"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_below="@id/item_label_summary"
+                    tools:text="24% Rain"/>
+            </RelativeLayout>
+
+            <ImageView
+                android:id="@+id/item_icon_wind"
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:layout_below="@id/item_icon_forecast"
+                android:src="@drawable/ic_wind"/>
+
+            <TextView
+                android:id="@+id/item_label_wind"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignBottom="@id/item_icon_wind"
+                android:layout_alignTop="@id/item_icon_wind"
+                android:layout_toRightOf="@id/item_icon_wind"
+                android:gravity="center_vertical"
+                tools:text="25 kmh, NNE"/>
+        </RelativeLayout>
+    </RelativeLayout>
+
+</RelativeLayout>

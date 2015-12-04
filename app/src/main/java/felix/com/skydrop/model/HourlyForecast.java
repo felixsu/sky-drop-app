@@ -10,6 +10,11 @@ public class HourlyForecast {
     private double mPrecipProbability;
     private double mPrecipIntensity;
     private String mPrecipType;
+    private String mIcon;
+    private double mWindSpeed;
+    private double mWindDirection;
+    private String mSummary;
+
 
     public long getTime() {
         return mTime;
@@ -57,6 +62,38 @@ public class HourlyForecast {
 
     public void setPrecipType(String precipType) {
         mPrecipType = precipType;
+    }
+
+    public String getIcon() {
+        return mIcon;
+    }
+
+    public void setIcon(String icon) {
+        mIcon = icon;
+    }
+
+    public double getWindSpeed() {
+        return mWindSpeed;
+    }
+
+    public void setWindSpeed(double windSpeed) {
+        mWindSpeed = windSpeed;
+    }
+
+    public double getWindDirection() {
+        return mWindDirection;
+    }
+
+    public void setWindDirection(double windDirection) {
+        mWindDirection = windDirection;
+    }
+
+    public String getSummary() {
+        return mSummary;
+    }
+
+    public void setSummary(String summary) {
+        mSummary = summary;
     }
 }
 
