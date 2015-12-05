@@ -9,7 +9,7 @@ import felix.com.skydrop.constant.WeatherConstant;
 /**
  * Created by fsoewito on 11/26/2015.
  */
-public class WeatherData extends BaseWeather implements WeatherConstant {
+public class WeatherData extends BaseWeather {
     public static final int FORECAST_DISPLAYED = 6;
 
     protected boolean initialized;
@@ -133,50 +133,50 @@ public class WeatherData extends BaseWeather implements WeatherConstant {
 
     public void getFromJson(String json) throws JSONException {
         JSONObject container = new JSONObject(json);
-        if (container.has(KEY_INITIALIZED)) {
-            setInitialized(container.getBoolean(KEY_INITIALIZED));
+        if (container.has(WeatherConstant.KEY_INITIALIZED)) {
+            setInitialized(container.getBoolean(WeatherConstant.KEY_INITIALIZED));
         } else {
             setInitialized(true);
         }
-        setTimezone(container.getString(KEY_TIMEZONE));
-        setLatitude(container.getDouble(KEY_LATITUDE));
-        setLongitude(container.getDouble(KEY_LONGITUDE));
+        setTimezone(container.getString(WeatherConstant.KEY_TIMEZONE));
+        setLatitude(container.getDouble(WeatherConstant.KEY_LATITUDE));
+        setLongitude(container.getDouble(WeatherConstant.KEY_LONGITUDE));
 
-        JSONObject current = container.getJSONObject(KEY_CURRENT);
-        setTime(current.getLong(KEY_TIME));
-        setSummary(current.getString(KEY_SUMMARY));
-        setIcon(current.getString(KEY_ICON));
-        setPrecipProbability(current.getDouble(KEY_PRECIP));
-        setTemperature(current.getDouble(KEY_TEMPERATURE));
-        setApparentTemperature(current.getDouble(KEY_APPARENT_TEMPERATURE));
-        setHumidity(current.getDouble(KEY_HUMIDITY));
-        setWindSpeed(current.getDouble(KEY_WIND_SPEED));
-        setWindDirection(current.getDouble(KEY_WIND_DIRECTION));
-        setPressure(current.getDouble(KEY_PRESSURE));
+        JSONObject current = container.getJSONObject(WeatherConstant.KEY_CURRENT);
+        setTime(current.getLong(WeatherConstant.KEY_TIME));
+        setSummary(current.getString(WeatherConstant.KEY_SUMMARY));
+        setIcon(current.getString(WeatherConstant.KEY_ICON));
+        setPrecipProbability(current.getDouble(WeatherConstant.KEY_PRECIP));
+        setTemperature(current.getDouble(WeatherConstant.KEY_TEMPERATURE));
+        setApparentTemperature(current.getDouble(WeatherConstant.KEY_APPARENT_TEMPERATURE));
+        setHumidity(current.getDouble(WeatherConstant.KEY_HUMIDITY));
+        setWindSpeed(current.getDouble(WeatherConstant.KEY_WIND_SPEED));
+        setWindDirection(current.getDouble(WeatherConstant.KEY_WIND_DIRECTION));
+        setPressure(current.getDouble(WeatherConstant.KEY_PRESSURE));
 
-        JSONObject hourly = container.getJSONObject(KEY_HOURLY);
-        setHourSummary(hourly.getString(KEY_SUMMARY));
+        JSONObject hourly = container.getJSONObject(WeatherConstant.KEY_HOURLY);
+        setHourSummary(hourly.getString(WeatherConstant.KEY_SUMMARY));
 
-        JSONArray hourlyData = hourly.getJSONArray(KEY_DATA);
+        JSONArray hourlyData = hourly.getJSONArray(WeatherConstant.KEY_DATA);
         HourlyForecast[] hourlyForecasts = new HourlyForecast[hourlyData.length()];
 
         for (int i = 0; i < FORECAST_DISPLAYED; i++) {
             HourlyForecast d = new HourlyForecast();
             JSONObject o = hourlyData.getJSONObject(i);
-            d.setPrecipProbability(o.getDouble(KEY_PRECIP));
-            d.setTemperature(o.getDouble(KEY_TEMPERATURE));
-            d.setApparentTemperature(o.getDouble(KEY_APPARENT_TEMPERATURE));
-            d.setTime(o.getLong(KEY_TIME));
-            d.setIcon(o.getString(KEY_ICON));
-            d.setSummary(o.getString(KEY_SUMMARY));
-            d.setWindSpeed(o.getDouble(KEY_WIND_SPEED));
-            d.setWindDirection(o.getDouble(KEY_WIND_DIRECTION));
+            d.setPrecipProbability(o.getDouble(WeatherConstant.KEY_PRECIP));
+            d.setTemperature(o.getDouble(WeatherConstant.KEY_TEMPERATURE));
+            d.setApparentTemperature(o.getDouble(WeatherConstant.KEY_APPARENT_TEMPERATURE));
+            d.setTime(o.getLong(WeatherConstant.KEY_TIME));
+            d.setIcon(o.getString(WeatherConstant.KEY_ICON));
+            d.setSummary(o.getString(WeatherConstant.KEY_SUMMARY));
+            d.setWindSpeed(o.getDouble(WeatherConstant.KEY_WIND_SPEED));
+            d.setWindDirection(o.getDouble(WeatherConstant.KEY_WIND_DIRECTION));
 
-            double rawIntensity = o.getDouble(KEY_PRECIP_INTENSITY);
+            double rawIntensity = o.getDouble(WeatherConstant.KEY_PRECIP_INTENSITY);
             double processedIntensity = (rawIntensity > 1500 ? 1500 : rawIntensity);
             d.setPrecipIntensity(processedIntensity);
-            if (o.has(KEY_PRECIP_TYPE)) {
-                d.setPrecipType(o.getString(KEY_PRECIP_TYPE));
+            if (o.has(WeatherConstant.KEY_PRECIP_TYPE)) {
+                d.setPrecipType(o.getString(WeatherConstant.KEY_PRECIP_TYPE));
             } else {
                 d.setPrecipType(null);
             }
@@ -188,46 +188,46 @@ public class WeatherData extends BaseWeather implements WeatherConstant {
     public String toJson() {
         JSONObject result = new JSONObject();
         try {
-            result.put(KEY_INITIALIZED, isInitialized());
-            result.put(KEY_TIMEZONE, getTimezone());
-            result.put(KEY_LATITUDE, getLatitude());
-            result.put(KEY_LONGITUDE, getLongitude());
+            result.put(WeatherConstant.KEY_INITIALIZED, isInitialized());
+            result.put(WeatherConstant.KEY_TIMEZONE, getTimezone());
+            result.put(WeatherConstant.KEY_LATITUDE, getLatitude());
+            result.put(WeatherConstant.KEY_LONGITUDE, getLongitude());
 
             JSONObject current = new JSONObject();
-            current.put(KEY_TEMPERATURE, getTemperature());
-            current.put(KEY_APPARENT_TEMPERATURE, getApparentTemperature());
-            current.put(KEY_HUMIDITY, getHumidity());
-            current.put(KEY_PRESSURE, getPressure());
-            current.put(KEY_PRECIP, getPrecipProbability());
-            current.put(KEY_SUMMARY, getSummary());
-            current.put(KEY_WIND_DIRECTION, getWindDirection());
-            current.put(KEY_WIND_SPEED, getWindSpeed());
-            current.put(KEY_ICON, getIcon());
-            current.put(KEY_TIME, getTime());
-            result.put(KEY_CURRENT, current);
+            current.put(WeatherConstant.KEY_TEMPERATURE, getTemperature());
+            current.put(WeatherConstant.KEY_APPARENT_TEMPERATURE, getApparentTemperature());
+            current.put(WeatherConstant.KEY_HUMIDITY, getHumidity());
+            current.put(WeatherConstant.KEY_PRESSURE, getPressure());
+            current.put(WeatherConstant.KEY_PRECIP, getPrecipProbability());
+            current.put(WeatherConstant.KEY_SUMMARY, getSummary());
+            current.put(WeatherConstant.KEY_WIND_DIRECTION, getWindDirection());
+            current.put(WeatherConstant.KEY_WIND_SPEED, getWindSpeed());
+            current.put(WeatherConstant.KEY_ICON, getIcon());
+            current.put(WeatherConstant.KEY_TIME, getTime());
+            result.put(WeatherConstant.KEY_CURRENT, current);
 
             JSONObject hourly = new JSONObject();
-            hourly.put(KEY_SUMMARY, getHourSummary());
+            hourly.put(WeatherConstant.KEY_SUMMARY, getHourSummary());
             JSONArray hourlyArray = new JSONArray();
             for (int i = 0; i < FORECAST_DISPLAYED; i++) {
                 JSONObject o = new JSONObject();
                 HourlyForecast data = getHourlyForecasts()[i];
-                o.put(KEY_TIME, data.getTime());
-                o.put(KEY_TEMPERATURE, data.getTemperature());
-                o.put(KEY_APPARENT_TEMPERATURE, data.getApparentTemperature());
-                o.put(KEY_PRECIP, data.getPrecipProbability());
-                o.put(KEY_PRECIP_INTENSITY, data.getPrecipIntensity());
-                o.put(KEY_ICON, data.getIcon());
-                o.put(KEY_SUMMARY, data.getSummary());
-                o.put(KEY_WIND_SPEED, data.getWindSpeed());
-                o.put(KEY_WIND_DIRECTION, data.getWindDirection());
+                o.put(WeatherConstant.KEY_TIME, data.getTime());
+                o.put(WeatherConstant.KEY_TEMPERATURE, data.getTemperature());
+                o.put(WeatherConstant.KEY_APPARENT_TEMPERATURE, data.getApparentTemperature());
+                o.put(WeatherConstant.KEY_PRECIP, data.getPrecipProbability());
+                o.put(WeatherConstant.KEY_PRECIP_INTENSITY, data.getPrecipIntensity());
+                o.put(WeatherConstant.KEY_ICON, data.getIcon());
+                o.put(WeatherConstant.KEY_SUMMARY, data.getSummary());
+                o.put(WeatherConstant.KEY_WIND_SPEED, data.getWindSpeed());
+                o.put(WeatherConstant.KEY_WIND_DIRECTION, data.getWindDirection());
                 if (data.getPrecipType() != null) {
-                    o.put(KEY_PRECIP_TYPE, data.getPrecipType());
+                    o.put(WeatherConstant.KEY_PRECIP_TYPE, data.getPrecipType());
                 }
                 hourlyArray.put(i, o);
             }
-            hourly.put(KEY_DATA, hourlyArray);
-            result.put(KEY_HOURLY, hourly);
+            hourly.put(WeatherConstant.KEY_DATA, hourlyArray);
+            result.put(WeatherConstant.KEY_HOURLY, hourly);
             return result.toString();
         } catch (JSONException e) {
             e.printStackTrace();

@@ -8,12 +8,12 @@ android {
         applicationId "felix.com.skydrop"
         minSdkVersion 16
         targetSdkVersion 23
-        versionCode 8
-        versionName "1.2"
+        versionCode 9
+        versionName "1.3"
     }
     buildTypes {
         release {
-            minifyEnabled false
+            minifyEnabled true
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }

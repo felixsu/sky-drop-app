@@ -2,7 +2,6 @@ package felix.com.skydrop.activity;
 
 import android.content.Context;
 import android.content.SharedPreferences;
-import android.location.Location;
 import android.os.Bundle;
 import android.support.design.widget.NavigationView;
 import android.support.design.widget.TabLayout;
@@ -19,27 +18,19 @@ import android.view.MenuItem;
 import android.widget.LinearLayout;
 import android.widget.Toast;
 
-import com.google.android.gms.common.ConnectionResult;
-import com.google.android.gms.common.GooglePlayServicesUtil;
-import com.google.android.gms.common.api.GoogleApiClient;
-import com.google.android.gms.location.LocationAvailability;
-import com.google.android.gms.location.LocationListener;
-import com.google.android.gms.location.LocationRequest;
-import com.google.android.gms.location.LocationServices;
-
-import org.json.JSONException;
-
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
 import felix.com.skydrop.R;
 import felix.com.skydrop.adapter.SectionsPagerAdapter;
 import felix.com.skydrop.constant.ApplicationDataConstant;
-import felix.com.skydrop.constant.WeatherConstant;
 import felix.com.skydrop.constant.SettingConstant;
+import felix.com.skydrop.constant.WeatherConstant;
 import felix.com.skydrop.factory.ApplicationDataFactory;
 import felix.com.skydrop.factory.SettingDataFactory;
 import felix.com.skydrop.factory.WeatherFactory;
+import felix.com.skydrop.fragment.CurrentFragment;
+import felix.com.skydrop.fragment.ForecastFragment;
 import felix.com.skydrop.fragment.InfoDialogFragment;
 import felix.com.skydrop.model.ApplicationData;
 import felix.com.skydrop.model.SettingData;
@@ -49,15 +40,14 @@ public class MainActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener {
 
     private static final String TAG = MainActivity.class.getSimpleName();
-    private static final String KEY_REQUEST_LOCATION_STATE = "locationRequestState";
-
-    private boolean mRequestingLocation = false;
 
     //view
     private DrawerLayout mDrawer;
     private FragmentManager mFragmentManager;
     private ViewPager mViewPager;
     private SectionsPagerAdapter mSectionsPagerAdapter;
+    private CurrentFragment mCurrentFragment;
+    private ForecastFragment mForecastFragment;
 
     //data
     private WeatherData mWeatherData;
@@ -87,7 +77,6 @@ public class MainActivity extends AppCompatActivity
         setContentView(R.layout.activity_main);
         initView();
         initField();
-        updateState(savedInstanceState);
     }
 
     private void initView() {
@@ -132,13 +121,6 @@ public class MainActivity extends AppCompatActivity
 
     }
 
-    private void updateState(Bundle savedState) {
-        if (savedState != null) {
-            Log.i(TAG, "state not empty");
-            mRequestingLocation = savedState.getBoolean(KEY_REQUEST_LOCATION_STATE, false);
-        }
-    }
-
     @Override
     protected void onStart() {
         Log.d(TAG, "entering on start");
@@ -176,12 +158,6 @@ public class MainActivity extends AppCompatActivity
         weatherDataEditor.putString(WeatherConstant.KEY_CURRENT_WEATHER, getWeatherData().toJson()).apply();
         super.onPause();
         Log.d(TAG, "finish store shared data");
-    }
-
-    @Override
-    protected void onSaveInstanceState(Bundle outState) {
-        outState.putBoolean(KEY_REQUEST_LOCATION_STATE, mRequestingLocation);
-        super.onSaveInstanceState(outState);
     }
 
     @Override

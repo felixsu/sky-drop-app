@@ -44,23 +44,23 @@ import java.util.concurrent.TimeUnit;
 import butterknife.Bind;
 import butterknife.ButterKnife;
 import felix.com.skydrop.R;
-import felix.com.skydrop.Receiver.AddressResultReceiver;
 import felix.com.skydrop.activity.MainActivity;
 import felix.com.skydrop.adapter.SectionsPagerAdapter;
 import felix.com.skydrop.constant.Color;
 import felix.com.skydrop.constant.GeocoderConstant;
+import felix.com.skydrop.constant.GlobalConstant;
 import felix.com.skydrop.constant.WeatherConstant;
 import felix.com.skydrop.model.ApplicationData;
 import felix.com.skydrop.model.WeatherData;
+import felix.com.skydrop.receiver.AddressResultReceiver;
 import felix.com.skydrop.service.FetchAddressIntentService;
 import felix.com.skydrop.util.ForecastConverter;
 
 /**
  * Created by fsoewito on 11/24/2015.
- *
  */
 public class CurrentFragment extends Fragment
-        implements SwipeRefreshLayout.OnRefreshListener, WeatherConstant, AddressResultReceiver.Receiver,
+        implements SwipeRefreshLayout.OnRefreshListener, AddressResultReceiver.Receiver,
         GoogleApiClient.ConnectionCallbacks,
         GoogleApiClient.OnConnectionFailedListener,
         LocationListener {
@@ -69,74 +69,63 @@ public class CurrentFragment extends Fragment
     private static final String KEY_REQUEST_LOCATION_STATE = "locationRequestState";
 
     private static final int REQUEST_CODE_RECOVER_PLAY_SERVICES = 200;
-
+    WeatherData mWeatherData;
+    ApplicationData mApplicationData;
+    @Bind(R.id.layout_current_weather)
+    SwipeRefreshLayout mRefreshLayout;
+    //component
+    @Bind(R.id.labelLocation)
+    TextView mAddressLabel;
+    @Bind(R.id.labelTime)
+    TextView mTimeLabel;
+    @Bind(R.id.labelTimeProperties)
+    TextView mTimeLabelProperties;
+    @Bind(R.id.labelTemperature)
+    TextView mTemperatureLabel;
+    @Bind(R.id.imageViewWeather)
+    ImageView mIconWeather;
+    @Bind(R.id.labelSummary)
+    TextView mSummaryLabel;
+    @Bind(R.id.labelRealFeel)
+    TextView mRealFeelLabel;
+    @Bind(R.id.labelHumidity)
+    TextView mHumidityLabel;
+    @Bind(R.id.labelPrecipitation)
+    TextView mPrecipitationLabel;
+    @Bind(R.id.labelUvIndex)
+    TextView mUvIndexLabel;
+    @Bind(R.id.labelPressure)
+    TextView mPressureLabel;
+    @Bind(R.id.labelWindSpeed)
+    TextView mWindLabel;
+    @Bind(R.id.labelWindDirection)
+    TextView mWindDirectionLabel;
     private Location mLocation;
     private LocationRequest mLocationRequest;
     private GoogleApiClient mGoogleApiClient;
     private boolean mRequestingLocation = false;
-
     private AddressResultReceiver mResultReceiver;
-
-    WeatherData mWeatherData;
-    ApplicationData mApplicationData;
-    SectionsPagerAdapter mSectionsPagerAdapter;
-
     //root view
     private MainActivity mActivity;
     private View mLayout;
-
-    @Bind(R.id.layout_current_weather)
-    SwipeRefreshLayout mRefreshLayout;
-
-    //component
-    @Bind(R.id.labelLocation)
-    TextView mAddressLabel;
-
-    @Bind(R.id.labelTime)
-    TextView mTimeLabel;
-
-    @Bind(R.id.labelTimeProperties)
-    TextView mTimeLabelProperties;
-
-    @Bind(R.id.labelTemperature)
-    TextView mTemperatureLabel;
-
-    @Bind(R.id.imageViewWeather)
-    ImageView mIconWeather;
-
-    @Bind(R.id.labelSummary)
-    TextView mSummaryLabel;
-
-    @Bind(R.id.labelRealFeel)
-    TextView mRealFeelLabel;
-
-    @Bind(R.id.labelHumidity)
-    TextView mHumidityLabel;
-
-    @Bind(R.id.labelPrecipitation)
-    TextView mPrecipitationLabel;
-
-    @Bind(R.id.labelUvIndex)
-    TextView mUvIndexLabel;
-
-    @Bind(R.id.labelPressure)
-    TextView mPressureLabel;
-
-    @Bind(R.id.labelWindSpeed)
-    TextView mWindLabel;
-
-    @Bind(R.id.labelWindDirection)
-    TextView mWindDirectionLabel;
+    private SectionsPagerAdapter mSectionsPagerAdapter;
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         Log.i(TAG, "entering on create");
         super.onCreate(savedInstanceState);
         initData();
+        if (savedInstanceState != null) {
+            loadState(savedInstanceState);
+        }
         if (checkGooglePlayServices()) {
             Log.i(TAG, "gms available");
             buildGoogleApiClient();
         }
+    }
+
+    private void loadState(Bundle savedInstanceState) {
+        mRequestingLocation = savedInstanceState.getBoolean(KEY_REQUEST_LOCATION_STATE, false);
     }
 
     @Nullable
@@ -152,7 +141,7 @@ public class CurrentFragment extends Fragment
     @Override
     public void onStart() {
         Log.i(TAG, "entering on start");
-        if (mResultReceiver.getReceiver() == null){
+        if (mResultReceiver.getReceiver() == null) {
             mResultReceiver.setReceiver(this);
         }
         if (mGoogleApiClient != null) {
@@ -170,9 +159,15 @@ public class CurrentFragment extends Fragment
     }
 
     @Override
+    public void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putBoolean(KEY_REQUEST_LOCATION_STATE, mRequestingLocation);
+    }
+
+    @Override
     public void onPause() {
         Log.i(TAG, "entering on pause");
-        if (mResultReceiver.getReceiver() != null){
+        if (mResultReceiver.getReceiver() != null) {
             mResultReceiver.setReceiver(null);
         }
         if (mGoogleApiClient != null) {
@@ -202,13 +197,12 @@ public class CurrentFragment extends Fragment
     protected void initData() {
         Log.i(TAG, "entering init Data");
         mActivity = (MainActivity) getActivity();
-
+        mSectionsPagerAdapter = mActivity.getSectionsPagerAdapter();
         mResultReceiver = new AddressResultReceiver(new Handler());
         mResultReceiver.setReceiver(this);
 
         mWeatherData = mActivity.getWeatherData();
         mApplicationData = mActivity.getApplicationData();
-        mSectionsPagerAdapter = mActivity.getSectionsPagerAdapter();
     }
 
     protected void initView() {
@@ -220,8 +214,10 @@ public class CurrentFragment extends Fragment
     @SuppressLint("SetTextI18n")
     protected void updateDisplay() {
         Log.i(TAG, "entering update display");
-        ForecastFragment forecastFragment = (ForecastFragment) mSectionsPagerAdapter.getItem(1);
-        if (forecastFragment.isCreated()) {
+        ForecastFragment forecastFragment = (ForecastFragment) mActivity.getSupportFragmentManager()
+                .findFragmentById(mSectionsPagerAdapter.getId(GlobalConstant.FORECAST_FRAGMENT_INDEX));
+        if (forecastFragment != null && forecastFragment.isCreated()) {
+            Log.d(TAG, "forecastFragment is created and updated");
             forecastFragment.updateDisplay();
         }
         ColorFilter filter = new LightingColorFilter(Color.BLACK, 0xFF3F51B5);
@@ -296,7 +292,7 @@ public class CurrentFragment extends Fragment
             OkHttpClient client = new OkHttpClient();
             client.setConnectTimeout(5, TimeUnit.SECONDS);
             Request request = new Request.Builder().
-                    url(String.format("%s/%s/%04f,%04f?units=si", url, apiKey, latitude, longitude)).
+                    url(String.format("%s/%s/%04f,%04f?units=si", WeatherConstant.url, WeatherConstant.apiKey, latitude, longitude)).
                     build();
             Call call = client.newCall(request);
             call.enqueue(new Callback() {
