@@ -12,7 +12,6 @@ import felix.com.skydrop.constant.WeatherConstant;
 public class WeatherData extends BaseWeather implements WeatherConstant {
     public static final int FORECAST_DISPLAYED = 6;
 
-    protected String address;
     protected boolean initialized;
     protected long mTime;
     protected String mSummary;
@@ -132,22 +131,12 @@ public class WeatherData extends BaseWeather implements WeatherConstant {
         this.initialized = initialized;
     }
 
-    public String getAddress() {
-        return address;
-    }
-
-    public void setAddress(String address) {
-        this.address = address;
-    }
-
     public void getFromJson(String json) throws JSONException {
         JSONObject container = new JSONObject(json);
         if (container.has(KEY_INITIALIZED)) {
             setInitialized(container.getBoolean(KEY_INITIALIZED));
-            setAddress(container.getString(KEY_ADDRESS));
         } else {
             setInitialized(true);
-            setAddress("Location N/A");
         }
         setTimezone(container.getString(KEY_TIMEZONE));
         setLatitude(container.getDouble(KEY_LATITUDE));
@@ -178,6 +167,7 @@ public class WeatherData extends BaseWeather implements WeatherConstant {
             d.setTemperature(o.getDouble(KEY_TEMPERATURE));
             d.setApparentTemperature(o.getDouble(KEY_APPARENT_TEMPERATURE));
             d.setTime(o.getLong(KEY_TIME));
+            d.setIcon(o.getString(KEY_ICON));
             d.setSummary(o.getString(KEY_SUMMARY));
             d.setWindSpeed(o.getDouble(KEY_WIND_SPEED));
             d.setWindDirection(o.getDouble(KEY_WIND_DIRECTION));
@@ -198,7 +188,6 @@ public class WeatherData extends BaseWeather implements WeatherConstant {
     public String toJson() {
         JSONObject result = new JSONObject();
         try {
-            result.put(KEY_ADDRESS, getAddress());
             result.put(KEY_INITIALIZED, isInitialized());
             result.put(KEY_TIMEZONE, getTimezone());
             result.put(KEY_LATITUDE, getLatitude());
@@ -222,16 +211,18 @@ public class WeatherData extends BaseWeather implements WeatherConstant {
             JSONArray hourlyArray = new JSONArray();
             for (int i = 0; i < FORECAST_DISPLAYED; i++) {
                 JSONObject o = new JSONObject();
-                o.put(KEY_TIME, getHourlyForecasts()[i].getTime());
-                o.put(KEY_TEMPERATURE, getHourlyForecasts()[i].getTemperature());
-                o.put(KEY_APPARENT_TEMPERATURE, getHourlyForecasts()[i].getApparentTemperature());
-                o.put(KEY_PRECIP, getHourlyForecasts()[i].getPrecipProbability());
-                o.put(KEY_PRECIP_INTENSITY, getHourlyForecasts()[i].getPrecipIntensity());
-                o.put(KEY_SUMMARY, getHourlyForecasts()[i].getSummary());
-                o.put(KEY_WIND_SPEED, getHourlyForecasts()[i].getWindSpeed());
-                o.put(KEY_WIND_DIRECTION, getHourlyForecasts()[i].getWindDirection());
-                if (getHourlyForecasts()[i].getPrecipType() != null) {
-                    o.put(KEY_PRECIP_TYPE, getHourlyForecasts()[i].getPrecipType());
+                HourlyForecast data = getHourlyForecasts()[i];
+                o.put(KEY_TIME, data.getTime());
+                o.put(KEY_TEMPERATURE, data.getTemperature());
+                o.put(KEY_APPARENT_TEMPERATURE, data.getApparentTemperature());
+                o.put(KEY_PRECIP, data.getPrecipProbability());
+                o.put(KEY_PRECIP_INTENSITY, data.getPrecipIntensity());
+                o.put(KEY_ICON, data.getIcon());
+                o.put(KEY_SUMMARY, data.getSummary());
+                o.put(KEY_WIND_SPEED, data.getWindSpeed());
+                o.put(KEY_WIND_DIRECTION, data.getWindDirection());
+                if (data.getPrecipType() != null) {
+                    o.put(KEY_PRECIP_TYPE, data.getPrecipType());
                 }
                 hourlyArray.put(i, o);
             }

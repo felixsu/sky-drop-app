@@ -44,19 +44,11 @@ import felix.com.skydrop.model.ApplicationData;
 import felix.com.skydrop.model.WeatherData;
 
 public class MainActivity extends AppCompatActivity
-        implements NavigationView.OnNavigationItemSelectedListener,
-        GoogleApiClient.ConnectionCallbacks,
-        GoogleApiClient.OnConnectionFailedListener,
-        LocationListener{
+        implements NavigationView.OnNavigationItemSelectedListener {
 
     private static final String TAG = MainActivity.class.getSimpleName();
     private static final String KEY_REQUEST_LOCATION_STATE = "locationRequestState";
 
-    private static final int REQUEST_CODE_RECOVER_PLAY_SERVICES = 200;
-
-    private Location mLocation;
-    private LocationRequest mLocationRequest;
-    private GoogleApiClient mGoogleApiClient;
     private boolean mRequestingLocation = false;
 
     //view
@@ -92,10 +84,6 @@ public class MainActivity extends AppCompatActivity
         initView();
         initField();
         updateState(savedInstanceState);
-        if (checkGooglePlayServices()) {
-            Log.i(TAG, "gms available");
-            buildGoogleApiClient();
-        }
     }
 
     private void initView(){
@@ -148,10 +136,6 @@ public class MainActivity extends AppCompatActivity
     @Override
     protected void onStart() {
         super.onStart();
-        if (mGoogleApiClient != null) {
-            mGoogleApiClient.connect();
-        }
-
         long time = System.currentTimeMillis();
         String currentHourString = new SimpleDateFormat("hh").format(new Date(time));
         int currentHour = Integer.parseInt(currentHourString);
@@ -173,11 +157,13 @@ public class MainActivity extends AppCompatActivity
     @Override
     protected void onPause() {
         super.onPause();
+        getApplicationData().setInitialized(true);
         SharedPreferences.Editor applicationDataEditor = getSharedPreferences(ApplicationDataConstant.KEY, Context.MODE_PRIVATE).edit();
         SharedPreferences.Editor settingDataEditor = getSharedPreferences(SettingConstant.KEY, Context.MODE_PRIVATE).edit();
         SharedPreferences.Editor weatherDataEditor = getSharedPreferences(WeatherConstant.KEY, Context.MODE_PRIVATE).edit();
 
         applicationDataEditor.putBoolean(ApplicationDataConstant.INIT, getApplicationData().isInitialized()).apply();
+        applicationDataEditor.putString(ApplicationDataConstant.ADDRESS, getApplicationData().getAddress()).apply();
         weatherDataEditor.putString(WeatherConstant.KEY_CURRENT_WEATHER, getWeatherData().toJson()).apply();
     }
 
@@ -231,78 +217,9 @@ public class MainActivity extends AppCompatActivity
         return true;
     }
 
-    //google play sevice
-    protected synchronized void buildGoogleApiClient() {
-        mGoogleApiClient = new GoogleApiClient.Builder(this)
-                .addConnectionCallbacks(this)
-                .addOnConnectionFailedListener(this)
-                .addApi(LocationServices.API)
-                .build();
-    }
-
-    private boolean checkGooglePlayServices() {
-        int checkGooglePlayServices = GooglePlayServicesUtil
-                .isGooglePlayServicesAvailable(this);
-        if (checkGooglePlayServices != ConnectionResult.SUCCESS) {
-            GooglePlayServicesUtil.getErrorDialog(checkGooglePlayServices,
-                    this, REQUEST_CODE_RECOVER_PLAY_SERVICES).show();
-            return false;
-        }
-        return true;
-    }
-
     //etc
-    public Location getLocation() {
-        return mLocation;
-    }
-
     private void showInfo() {
         InfoDialogFragment dialogFragment = new InfoDialogFragment();
         dialogFragment.show(getSupportFragmentManager(), "info_dialog");
-    }
-
-    //gms
-    @Override
-    public void onConnected(Bundle bundle) {
-        Log.i(TAG, "entering on connected gms");
-        LocationAvailability availability = LocationServices.FusedLocationApi.getLocationAvailability(mGoogleApiClient);
-        if (availability != null) {
-            if (availability.isLocationAvailable() && !mRequestingLocation) {
-                mRequestingLocation = true;
-                Log.i(TAG, "finding location started");
-                mLocationRequest = LocationRequest.create();
-                mLocationRequest.setPriority(LocationRequest.PRIORITY_BALANCED_POWER_ACCURACY);
-                mLocationRequest.setInterval(10000);
-                mLocationRequest.setFastestInterval(5000);
-                mLocationRequest.setMaxWaitTime(2000);
-                LocationServices.FusedLocationApi.requestLocationUpdates(mGoogleApiClient, mLocationRequest, this);
-            } else {
-                Toast.makeText(this, "Location not available", Toast.LENGTH_SHORT).show();
-            }
-        }else{
-            Log.i(TAG, "availability null");
-        }
-
-    }
-
-    @Override
-    public void onConnectionSuspended(int i) {
-
-    }
-
-    @Override
-    public void onConnectionFailed(ConnectionResult connectionResult) {
-        Log.e(TAG, connectionResult.getErrorMessage());
-    }
-
-    @Override
-    public void onLocationChanged(Location location) {
-        Log.i(TAG, "entering on Location changed");
-        if (location != null) {
-            mLocation = location;
-        }else{
-            Log.i(TAG, "Location not found");
-        }
-        mRequestingLocation = false;
     }
 }

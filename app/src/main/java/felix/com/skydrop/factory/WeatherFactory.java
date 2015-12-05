@@ -20,7 +20,6 @@ public class WeatherFactory {
         weatherData.setIcon("clear-day");
         weatherData.setSummary("none");
         weatherData.setTimezone("America/Los_Angeles");
-        weatherData.setAddress("none");
 
         HourlyForecast[] hourlyForecasts = new HourlyForecast[WeatherData.FORECAST_DISPLAYED];
         for (int i = 0; i < hourlyForecasts.length; i++) {
@@ -41,7 +40,6 @@ public class WeatherFactory {
             weatherData.setIcon("clear-day");
             weatherData.setSummary("none");
             weatherData.setTimezone("America/Los_Angeles");
-            weatherData.setAddress("none");
 
             HourlyForecast[] hourlyForecasts = new HourlyForecast[WeatherData.FORECAST_DISPLAYED];
             for (int i = 0; i < hourlyForecasts.length; i++) {

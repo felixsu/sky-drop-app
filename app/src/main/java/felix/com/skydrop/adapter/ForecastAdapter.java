@@ -18,19 +18,22 @@ import felix.com.skydrop.util.ForecastConverter;
 public class ForecastAdapter extends RecyclerView.Adapter<ForecastAdapter.ForecastViewHolder> {
     HourlyForecast[] mForecasts;
     String mTimezone;
-    MyOnItemClickListener mListener;
+    MyOnItemClickListener mOnItemClickListener;
 
-    public ForecastAdapter(HourlyForecast[] forecasts, String timezone, MyOnItemClickListener listener) {
+    public ForecastAdapter(HourlyForecast[] forecasts, String timezone) {
         mForecasts = forecasts;
         mTimezone = timezone;
-        mListener = listener;
+    }
+
+    public void setOnItemClickListener(MyOnItemClickListener onItemClickListener) {
+        mOnItemClickListener = onItemClickListener;
     }
 
     @Override
     public ForecastViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
         View itemView = LayoutInflater.from(parent.getContext())
                 .inflate(R.layout.item_forecast_layout, parent, false);
-        return new ForecastViewHolder(itemView, mListener, mTimezone);
+        return new ForecastViewHolder(itemView, mOnItemClickListener, mTimezone);
     }
 
     @Override
@@ -81,7 +84,7 @@ public class ForecastAdapter extends RecyclerView.Adapter<ForecastAdapter.Foreca
             String type = (forecast.getPrecipType() != null) ? forecast.getPrecipType() : "precipitation chance";
             String precipValue = String.format("%s %%, %s",
                     ForecastConverter.getString(forecast.getPrecipProbability(), true, true), type);
-            String temperatureValue = String.format("%d°",
+            String temperatureValue = String.format("%s°",
                     ForecastConverter.getString(forecast.getTemperature(), true, false));
             String windValue = String.format("%s mps %s",
                     ForecastConverter.getString(forecast.getWindSpeed(), false, false),

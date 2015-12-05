@@ -3,7 +3,6 @@ package felix.com.skydrop.fragment;
 
 import android.content.Context;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.graphics.ColorFilter;
 import android.graphics.LightingColorFilter;
 import android.graphics.drawable.Drawable;
@@ -23,13 +22,13 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.github.mikephil.charting.charts.LineChart;
-import com.github.mikephil.charting.components.XAxis;
-import com.github.mikephil.charting.components.YAxis;
-import com.github.mikephil.charting.data.Entry;
-import com.github.mikephil.charting.data.LineData;
-import com.github.mikephil.charting.data.LineDataSet;
-import com.github.mikephil.charting.formatter.ValueFormatter;
+import com.google.android.gms.common.ConnectionResult;
+import com.google.android.gms.common.GooglePlayServicesUtil;
+import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.location.LocationAvailability;
+import com.google.android.gms.location.LocationListener;
+import com.google.android.gms.location.LocationRequest;
+import com.google.android.gms.location.LocationServices;
 import com.squareup.okhttp.Call;
 import com.squareup.okhttp.Callback;
 import com.squareup.okhttp.OkHttpClient;
@@ -39,9 +38,7 @@ import com.squareup.okhttp.Response;
 import org.json.JSONException;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import butterknife.Bind;
@@ -50,14 +47,10 @@ import felix.com.skydrop.R;
 import felix.com.skydrop.Receiver.AddressResultReceiver;
 import felix.com.skydrop.activity.MainActivity;
 import felix.com.skydrop.constant.Color;
-import felix.com.skydrop.constant.WeatherConstant;
 import felix.com.skydrop.constant.GeocoderConstant;
-import felix.com.skydrop.factory.WeatherFactory;
-import felix.com.skydrop.formatter.IntegerValueFormatter;
-import felix.com.skydrop.formatter.LevelValueFormatter;
+import felix.com.skydrop.constant.WeatherConstant;
 import felix.com.skydrop.model.ApplicationData;
 import felix.com.skydrop.model.WeatherData;
-import felix.com.skydrop.model.HourlyForecast;
 import felix.com.skydrop.service.FetchAddressIntentService;
 import felix.com.skydrop.util.ForecastConverter;
 
@@ -66,18 +59,26 @@ import felix.com.skydrop.util.ForecastConverter;
  *
  */
 public class CurrentFragment extends Fragment
-        implements SwipeRefreshLayout.OnRefreshListener, WeatherConstant, AddressResultReceiver.Receiver, Color {
+        implements SwipeRefreshLayout.OnRefreshListener, WeatherConstant, AddressResultReceiver.Receiver,
+        GoogleApiClient.ConnectionCallbacks,
+        GoogleApiClient.OnConnectionFailedListener,
+        LocationListener {
     private static final String TAG = CurrentFragment.class.getSimpleName();
 
     private static final String CHART_MODE_KEY = "chart_mode";
     private static final int CHART_TEMP_MODE = 0;
     private static final int CHART_PRECIP_MODE = 1;
 
-    Location mLocation;
-    double mLatitude = -6.215117;
-    double mLongitude = 106.824896;
+    private static final String KEY_REQUEST_LOCATION_STATE = "locationRequestState";
+
+    private static final int REQUEST_CODE_RECOVER_PLAY_SERVICES = 200;
+
+    private Location mLocation;
+    private LocationRequest mLocationRequest;
+    private GoogleApiClient mGoogleApiClient;
+    private boolean mRequestingLocation = false;
+
     private AddressResultReceiver mResultReceiver;
-    String mAddress = "Location N/A";
 
     WeatherData mWeatherData;
     ApplicationData mApplicationData;
@@ -130,25 +131,21 @@ public class CurrentFragment extends Fragment
     @Bind(R.id.labelWindDirection)
     TextView mWindDirectionLabel;
 
-    @Bind(R.id.labelHourlyTitle)
-    TextView mHourlyTitleLabel;
-
-    @Bind(R.id.labelHourlyContent)
-    TextView mHourlySummaryLabel;
-
-    @Bind(R.id.graphHourly)
-    LineChart mLineChart;
-
-    @Bind(R.id.labelGraphViewEmpty)
-    TextView mLineChartEmptyLabel;
-
+    @Override
+    public void onCreate(@Nullable Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        initData();
+        if (checkGooglePlayServices()) {
+            Log.i(TAG, "gms available");
+            buildGoogleApiClient();
+        }
+    }
 
     @Nullable
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         mLayout = inflater.inflate(R.layout.fragment_current_weather, container, false);
         ButterKnife.bind(this, mLayout);
-        initData();
         initView();
         return mLayout;
     }
@@ -158,6 +155,9 @@ public class CurrentFragment extends Fragment
         if (mResultReceiver.getReceiver() == null){
             mResultReceiver.setReceiver(this);
         }
+        if (mGoogleApiClient != null) {
+            mGoogleApiClient.connect();
+        }
         super.onStart();
     }
 
@@ -166,234 +166,73 @@ public class CurrentFragment extends Fragment
         if (mResultReceiver.getReceiver() != null){
             mResultReceiver.setReceiver(null);
         }
+        if (mGoogleApiClient != null) {
+            mGoogleApiClient.disconnect();
+        }
         super.onPause();
     }
 
     @Override
     public void onRefresh() {
         Log.i(TAG, "on refresh called");
-        mLocation = mActivity.getLocation();
         if (mLocation != null) {
-            mLatitude = mLocation.getLatitude();
-            mLongitude = mLocation.getLongitude();
+            getForecast(mLocation.getLatitude(), mLocation.getLongitude());
             Log.i(TAG, "location updated");
+        } else {
+            getForecast(mWeatherData.getLatitude(), mWeatherData.getLongitude());
         }
-        getForecast(mLatitude, mLongitude);
     }
 
     protected void initData() {
 
         mActivity = (MainActivity) getActivity();
+
         mResultReceiver = new AddressResultReceiver(new Handler());
         mResultReceiver.setReceiver(this);
         mState = new HashMap<>();
         mState.put(CHART_MODE_KEY, CHART_TEMP_MODE);
+
         mWeatherData = mActivity.getWeatherData();
         mApplicationData = mActivity.getApplicationData();
     }
 
     protected void initView() {
-        updateDisplay(mWeatherData);
+        updateDisplay();
         mRefreshLayout.setOnRefreshListener(this);
-        mRefreshLayout.setColorSchemeColors(RED, BLUE, YELLOW, GREEN);
-
-        mLineChart.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                toggleState();
-                drawChart();
-            }
-        });
+        mRefreshLayout.setColorSchemeColors(Color.RED, Color.BLUE, Color.YELLOW, Color.GREEN);
     }
 
-    private void drawChart() {
-        HourlyForecast[] datas = mWeatherData.getHourlyForecasts();
-        //init label
-        List<String> xVal = new ArrayList<>();
-        for (int i = 0; i < WeatherData.FORECAST_DISPLAYED; i++) {
-            xVal.add(ForecastConverter.getString(
-                    datas[i].getTime(), mWeatherData.getTimezone(),
-                    ForecastConverter.SHORT_MODE));
-        }
-
-        //init Line
-        List<Entry> actualTempList = new ArrayList<>();
-        List<Entry> apparentTempList = new ArrayList<>();
-        List<Entry> precipProbList = new ArrayList<>();
-        List<Entry> precipIntensityList = new ArrayList<>();
-
-        double minYAxisVal = 200;
-        double maxYAxisVal = -100;
-        for (int i = 0; i < WeatherData.FORECAST_DISPLAYED; i++) {
-            actualTempList.add(new Entry((float) Math.round(datas[i].getTemperature()), i));
-            apparentTempList.add(new Entry((float) Math.round(datas[i].getApparentTemperature()), i));
-            precipProbList.add(new Entry((float) (datas[i].getPrecipProbability() * 100), i));
-            precipIntensityList.add(new Entry((float) (datas[i].getPrecipIntensity()) * 100, i));
-        }
-
-        LineDataSet actualTempDataSet = new LineDataSet(actualTempList, "actual temp");
-        setUpDataSet(actualTempDataSet, PRIMARY_COLOR, false, YAxis.AxisDependency.LEFT);
-        LineDataSet apparentTempDataSet = new LineDataSet(apparentTempList, "apparent temp");
-        setUpDataSet(apparentTempDataSet, ACCENT_COLOR, false, YAxis.AxisDependency.LEFT);
-
-        LineDataSet precipProbDataSet = new LineDataSet(precipProbList, "rain chance");
-        setUpDataSet(precipProbDataSet, PRIMARY_COLOR, false, YAxis.AxisDependency.LEFT);
-        LineDataSet precipIntensityDataSet = new LineDataSet(precipIntensityList, "intensity");
-        setUpDataSet(precipIntensityDataSet, ACCENT_COLOR, true, YAxis.AxisDependency.RIGHT);
-
-
-        List<LineDataSet> dataSets = new ArrayList<>();
-        if (mState.get(CHART_MODE_KEY) == CHART_TEMP_MODE) {
-            for (int i = 0; i < WeatherData.FORECAST_DISPLAYED; i++) {
-                double val = mWeatherData.getHourlyForecasts()[i].getTemperature();
-                double val2 = mWeatherData.getHourlyForecasts()[i].getApparentTemperature();
-                if (minYAxisVal > val) {
-                    minYAxisVal = val;
-                }
-                if (minYAxisVal > val2) {
-                    minYAxisVal = val2;
-                }
-                if (maxYAxisVal < val) {
-                    maxYAxisVal = val;
-                }
-                if (maxYAxisVal < val2) {
-                    maxYAxisVal = val2;
-                }
-            }
-            dataSets.add(actualTempDataSet);
-            dataSets.add(apparentTempDataSet);
-        } else {
-            minYAxisVal = 1;
-            maxYAxisVal = 99;
-            precipProbDataSet.setDrawValues(false);
-            dataSets.add(precipProbDataSet);
-            dataSets.add(precipIntensityDataSet);
-        }
-        //init char body
-        LineData data = new LineData(xVal, dataSets);
-        mLineChart.setData(data);
-
-        YAxis axisRight = mLineChart.getAxisRight();
-
-        if (mState.get(CHART_MODE_KEY) == CHART_TEMP_MODE) {
-            axisRight.setEnabled(false);
-        } else {
-            axisRight.setEnabled(true);
-            axisRight.setValueFormatter(new LevelValueFormatter());
-            axisRight.setLabelCount(3, true);
-            axisRight.setAxisMaxValue(1500);
-            axisRight.setAxisMinValue(0);
-        }
-
-        XAxis xAxis = mLineChart.getXAxis();
-        xAxis.setPosition(XAxis.XAxisPosition.BOTTOM);
-        xAxis.setDrawGridLines(false);
-        xAxis.setAxisLineWidth(2f);
-
-        YAxis axisLeft = mLineChart.getAxisLeft();
-        if (mState.get(CHART_MODE_KEY) == CHART_TEMP_MODE) {
-            axisLeft.setAxisMinValue((float) (minYAxisVal - 1d));
-            axisLeft.setAxisMaxValue((float) (maxYAxisVal + 1d));
-            axisLeft.setEnabled(false);
-        } else {
-            axisLeft.setEnabled(true);
-            axisLeft.setAxisMinValue(0f);
-            axisLeft.setAxisMaxValue(100f);
-            axisLeft.setDrawAxisLine(true);
-            axisLeft.setAxisLineWidth(1f);
-        }
-
-        axisLeft.setLabelCount(6, false);
-        axisLeft.setStartAtZero(false);
-        axisLeft.setDrawGridLines(false);
-
-        mLineChart.setBorderColor(GREY_DARK);
-        mLineChart.setBackgroundColor(WHITE);
-        mLineChart.setGridBackgroundColor(WHITE);
-        mLineChart.setDrawGridBackground(false);
-        //interaction setting
-        mLineChart.setScaleEnabled(false);
-        mLineChart.setPinchZoom(false);
-        mLineChart.setDoubleTapToZoomEnabled(false);
-        mLineChart.setHighlightPerDragEnabled(false);
-        mLineChart.setHighlightPerTapEnabled(false);
-
-        //title
-        if (mState.get(CHART_MODE_KEY) == CHART_TEMP_MODE) {
-            mLineChart.setDescription("Temperature Forecast");
-        }else{
-            mLineChart.setDescription("Rain Chance Forecast");
-        }
-
-        //refresh chart
-        mLineChart.notifyDataSetChanged();
-        mLineChart.invalidate();
-    }
-
-    protected void setUpDataSet(LineDataSet lineDataSet, int color, boolean drawFill, YAxis.AxisDependency dependency) {
-        ValueFormatter formatter;
-        if (dependency == YAxis.AxisDependency.LEFT) {
-            formatter = new IntegerValueFormatter();
-        } else {
-            formatter = new LevelValueFormatter();
-        }
-        lineDataSet.setAxisDependency(dependency);
-        lineDataSet.setLineWidth(3f);
-        lineDataSet.setCircleSize(4f);
-        lineDataSet.setCircleColor(color);
-        lineDataSet.setDrawCircleHole(false);
-        lineDataSet.setFillColor(color);
-        lineDataSet.setDrawFilled(drawFill);
-        lineDataSet.setColor(color);
-        lineDataSet.setValueTextSize(12f);
-        lineDataSet.setValueFormatter(formatter);
-        lineDataSet.setValueTextColor(color);
-
-        if (drawFill) {
-            lineDataSet.setDrawCircles(false);
-            lineDataSet.setDrawValues(false);
-        }
-    }
-
-    protected void updateDisplay(WeatherData weatherData) {
-        ColorFilter filter = new LightingColorFilter(BLACK, 0xFF3F51B5);
-        Drawable drawable = mActivity.getResources().getDrawable(ForecastConverter.getIcon(weatherData.getIcon()));
+    protected void updateDisplay() {
+        ColorFilter filter = new LightingColorFilter(Color.BLACK, 0xFF3F51B5);
+        Drawable drawable = mActivity.getResources().getDrawable(ForecastConverter.getIcon(mWeatherData.getIcon()));
         if (drawable != null) {
             drawable.setColorFilter(filter);
         }
 
-        if (weatherData.isInitialized()) {
+        if (mWeatherData.isInitialized()) {
             mIconWeather.setImageDrawable(drawable);
-            mTemperatureLabel.setText(ForecastConverter.getString(weatherData.getTemperature(), true, false));
-            mAddressLabel.setText(weatherData.getAddress());
-            String time = ForecastConverter.getString(weatherData.getTime(),
-                    weatherData.getTimezone(), ForecastConverter.LONG_MODE);
+            mTemperatureLabel.setText(ForecastConverter.getString(mWeatherData.getTemperature(), true, false));
+            mAddressLabel.setText(mApplicationData.getAddress());
+            String time = ForecastConverter.getString(mWeatherData.getTime(),
+                    mWeatherData.getTimezone(), ForecastConverter.LONG_MODE);
             mTimeLabel.setText(time.substring(0, time.length() - 2));
             mTimeLabelProperties.setText(time.substring(time.length() - 2, time.length()));
 
-            mSummaryLabel.setText(weatherData.getSummary());
+            mSummaryLabel.setText(mWeatherData.getSummary());
             mRealFeelLabel.setText(String.format("Real Feel : %s",
-                    ForecastConverter.getString(weatherData.getApparentTemperature(), true, false)));
+                    ForecastConverter.getString(mWeatherData.getApparentTemperature(), true, false)));
             //todo get uv index or remove it :(
             mUvIndexLabel.setText("NA");
             mHumidityLabel.setText(String.format
-                    ("%s %%", ForecastConverter.getString(weatherData.getHumidity(), true, true)));
+                    ("%s %%", ForecastConverter.getString(mWeatherData.getHumidity(), true, true)));
             mPrecipitationLabel.setText(String.format
-                    ("%s %%", ForecastConverter.getString(weatherData.getPrecipProbability(), true, true)));
+                    ("%s %%", ForecastConverter.getString(mWeatherData.getPrecipProbability(), true, true)));
             mPressureLabel.setText(String.format
-                    ("%s mbar", ForecastConverter.getString(weatherData.getPressure(), false, false)));
+                    ("%s mbar", ForecastConverter.getString(mWeatherData.getPressure(), false, false)));
 
             mWindLabel.setText(String.format
-                    ("%s mps", ForecastConverter.getString(weatherData.getWindSpeed(), false, false)));
-            mWindDirectionLabel.setText(ForecastConverter.getDirection(weatherData.getWindDirection()));
-
-            //String[] forecast = DecisionFactory.generateForecastDecision(weatherData.getHourlyForecasts()).split("-", 2);
-            mHourlyTitleLabel.setText("Forecast");
-            mHourlySummaryLabel.setText(weatherData.getHourSummary());
-
-            drawChart();
-            mLineChart.setVisibility(View.VISIBLE);
-            mLineChartEmptyLabel.setVisibility(View.GONE);
+                    ("%s mps", ForecastConverter.getString(mWeatherData.getWindSpeed(), false, false)));
+            mWindDirectionLabel.setText(ForecastConverter.getDirection(mWeatherData.getWindDirection()));
         } else {
             mAddressLabel.setText("Location NA");
             mTemperatureLabel.setText(R.string.not_available);
@@ -409,12 +248,6 @@ public class CurrentFragment extends Fragment
             mPressureLabel.setText(R.string.not_available);
             mWindLabel.setText(R.string.not_available);
             mWindDirectionLabel.setText(R.string.not_available);
-
-            mHourlyTitleLabel.setText("Forecast");
-            mHourlySummaryLabel.setText(R.string.not_available);
-
-            mLineChart.setVisibility(View.GONE);
-            mLineChartEmptyLabel.setVisibility(View.VISIBLE);
         }
     }
 
@@ -461,7 +294,6 @@ public class CurrentFragment extends Fragment
                         String jsonData = response.body().string();
                         Log.v(TAG, response.body().string());
                         if (response.isSuccessful()) {
-                            mApplicationData.setInitialized(true);
                             mWeatherData.getFromJson(jsonData);
                             startIntentService();
                         } else {
@@ -470,7 +302,7 @@ public class CurrentFragment extends Fragment
                             mActivity.runOnUiThread(new Runnable() {
                                 @Override
                                 public void run() {
-                                    updateDisplay(mWeatherData);
+                                    updateDisplay();
                                     mRefreshLayout.setRefreshing(false);
                                 }
                             });
@@ -490,28 +322,21 @@ public class CurrentFragment extends Fragment
         }
     }
 
-    private void toggleState() {
-        if (mState.get(CHART_MODE_KEY) == CHART_TEMP_MODE) {
-            mState.put(CHART_MODE_KEY, CHART_PRECIP_MODE);
-        } else {
-            mState.put(CHART_MODE_KEY, CHART_TEMP_MODE);
-        }
-    }
-
     @Override
     public void onReceiveResult(int resultCode, Bundle resultData) {
+        String address;
         if (resultCode == GeocoderConstant.SUCCESS_RESULT) {
             Log.i(TAG, "geocoder success");
-            mAddress = resultData.getString(GeocoderConstant.RESULT_DATA_KEY);
+            address = resultData.getString(GeocoderConstant.RESULT_DATA_KEY);
         } else {
             Log.i(TAG, "geocoder unsuccessful");
-            mAddress = "Location N/A";
+            address = "Location N/A";
         }
-        mWeatherData.setAddress(mAddress);
+        mApplicationData.setAddress(address);
         mActivity.runOnUiThread(new Runnable() {
             @Override
             public void run() {
-                updateDisplay(mWeatherData);
+                updateDisplay();
                 mRefreshLayout.setRefreshing(false);
             }
         });
@@ -522,5 +347,73 @@ public class CurrentFragment extends Fragment
         intent.putExtra(GeocoderConstant.RECEIVER, mResultReceiver);
         intent.putExtra(GeocoderConstant.LOCATION_DATA_EXTRA, mLocation);
         mActivity.startService(intent);
+    }
+
+    //gms
+    //google play sevice
+    protected synchronized void buildGoogleApiClient() {
+        mGoogleApiClient = new GoogleApiClient.Builder(mActivity)
+                .addConnectionCallbacks(this)
+                .addOnConnectionFailedListener(this)
+                .addApi(LocationServices.API)
+                .build();
+    }
+
+    private boolean checkGooglePlayServices() {
+        int checkGooglePlayServices = GooglePlayServicesUtil
+                .isGooglePlayServicesAvailable(mActivity);
+        if (checkGooglePlayServices != ConnectionResult.SUCCESS) {
+            GooglePlayServicesUtil.getErrorDialog(checkGooglePlayServices,
+                    mActivity, REQUEST_CODE_RECOVER_PLAY_SERVICES).show();
+            return false;
+        }
+        return true;
+    }
+
+    @Override
+    public void onConnected(Bundle bundle) {
+        Log.i(TAG, "entering on connected gms");
+        LocationAvailability availability = LocationServices.FusedLocationApi.getLocationAvailability(mGoogleApiClient);
+        if (availability != null) {
+            if (availability.isLocationAvailable() && !mRequestingLocation) {
+                mRequestingLocation = true;
+                Log.i(TAG, "finding location started");
+                mLocationRequest = LocationRequest.create();
+                mLocationRequest.setPriority(LocationRequest.PRIORITY_BALANCED_POWER_ACCURACY);
+                mLocationRequest.setInterval(10000);
+                mLocationRequest.setFastestInterval(5000);
+                mLocationRequest.setMaxWaitTime(2000);
+                LocationServices.FusedLocationApi.requestLocationUpdates(mGoogleApiClient, mLocationRequest, this);
+            } else {
+                Toast.makeText(mActivity, "Location not available", Toast.LENGTH_SHORT).show();
+            }
+        } else {
+            Log.i(TAG, "availability null");
+        }
+
+    }
+
+    @Override
+    public void onConnectionSuspended(int i) {
+
+    }
+
+    @Override
+    public void onConnectionFailed(ConnectionResult connectionResult) {
+        Log.e(TAG, connectionResult.getErrorMessage());
+    }
+
+    @Override
+    public void onLocationChanged(Location location) {
+        Log.i(TAG, "entering on Location changed");
+        if (location != null) {
+            mLocation = location;
+        } else {
+            Log.i(TAG, "Location not found");
+        }
+        if (mGoogleApiClient != null) {
+            mGoogleApiClient.disconnect();
+        }
+        mRequestingLocation = false;
     }
 }

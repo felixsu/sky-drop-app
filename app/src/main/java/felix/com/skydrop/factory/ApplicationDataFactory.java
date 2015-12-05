@@ -19,6 +19,7 @@ public class ApplicationDataFactory {
         ApplicationData data = new ApplicationData();
         if (preferences != null) {
             data.setInitialized(preferences.getBoolean(ApplicationDataConstant.INIT, false));
+            data.setAddress(preferences.getString(ApplicationDataConstant.ADDRESS, "Location N/A"));
         }
         return data;
     }

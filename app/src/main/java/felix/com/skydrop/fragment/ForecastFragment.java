@@ -3,7 +3,9 @@ package felix.com.skydrop.fragment;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
+import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -24,6 +26,7 @@ import butterknife.Bind;
 import butterknife.ButterKnife;
 import felix.com.skydrop.R;
 import felix.com.skydrop.activity.MainActivity;
+import felix.com.skydrop.adapter.ForecastAdapter;
 import felix.com.skydrop.constant.Color;
 import felix.com.skydrop.formatter.IntegerValueFormatter;
 import felix.com.skydrop.formatter.LevelValueFormatter;
@@ -51,6 +54,9 @@ public class ForecastFragment extends Fragment implements MyOnItemClickListener 
     RecyclerView mRecyclerView;
 
     View mView;
+    ForecastAdapter mForecastAdapter;
+
+
     MainActivity mActivity;
     ApplicationData mApplicationData;
     WeatherData mWeatherData;
@@ -59,6 +65,7 @@ public class ForecastFragment extends Fragment implements MyOnItemClickListener 
     @Nullable
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+        Log.i(TAG, "entering on create view");
         mView = inflater.inflate(R.layout.fragment_forecast, container, false);
         ButterKnife.bind(this, mView);
         return mView;
@@ -66,6 +73,7 @@ public class ForecastFragment extends Fragment implements MyOnItemClickListener 
 
     @Override
     public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
+        Log.i(TAG, "entering on view created");
         initData();
         initView();
     }
@@ -91,6 +99,14 @@ public class ForecastFragment extends Fragment implements MyOnItemClickListener 
         });
 
         if (mWeatherData.isInitialized()) {
+            mForecastAdapter = new ForecastAdapter(mWeatherData.getHourlyForecasts(), mWeatherData.getTimezone());
+            mForecastAdapter.setOnItemClickListener(this);
+            mRecyclerView.setAdapter(mForecastAdapter);
+
+            RecyclerView.LayoutManager layoutManager =
+                    new LinearLayoutManager(mActivity);
+            mRecyclerView.setLayoutManager(layoutManager);
+
             drawChart();
         }
     }
@@ -256,25 +272,29 @@ public class ForecastFragment extends Fragment implements MyOnItemClickListener 
     @Override
     public void onStart() {
         super.onStart();
+        Log.i(TAG, "entering on start");
     }
 
     @Override
     public void onResume() {
         super.onResume();
+        Log.i(TAG, "entering on resume");
     }
 
     @Override
     public void onPause() {
         super.onPause();
+        Log.i(TAG, "entering on pause");
     }
 
     @Override
     public void onStop() {
         super.onStop();
+        Log.i(TAG, "entering on stop");
     }
 
     @Override
     public void onClick(View view, int position) {
-
+        Log.i(TAG, "on click " + position);
     }
 }

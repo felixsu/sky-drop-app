@@ -126,63 +126,10 @@
             </RelativeLayout>
 
             <RelativeLayout
-                android:id="@+id/cardContainer2"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_below="@id/cardContainer"
-                android:layout_marginTop="@dimen/card_margin"
-                android:background="@drawable/shape_card"
-                android:translationZ="4dp">
-
-                <RelativeLayout
-                    android:id="@+id/chartContainer"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginBottom="@dimen/activity_vertical_margin"
-                    android:layout_marginLeft="@dimen/activity_horizontal_margin"
-                    android:layout_marginRight="@dimen/activity_horizontal_margin"
-                    android:layout_marginTop="@dimen/activity_vertical_margin">
-
-                    <TextView
-                        android:id="@+id/labelHourlyTitle"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:paddingBottom="@dimen/card_margin"
-                        android:text="Title"
-                        android:textSize="@dimen/titleCard"
-                        android:textStyle="bold"/>
-
-                    <TextView
-                        android:id="@+id/labelHourlyContent"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_below="@id/labelHourlyTitle"
-                        android:maxLines="3"
-                        android:paddingBottom="@dimen/activity_vertical_margin"
-                        android:text="Content la la la la la la la la to be filled"/>
-
-                    <com.github.mikephil.charting.charts.LineChart
-                        android:id="@+id/graphHourly"
-                        android:layout_width="match_parent"
-                        android:layout_height="128dp"
-                        android:layout_below="@id/labelHourlyContent"
-                        android:paddingTop="@dimen/activity_vertical_margin"/>
-
-                    <TextView
-                        android:id="@+id/labelGraphViewEmpty"
-                        android:layout_width="match_parent"
-                        android:layout_height="128dp"
-                        android:layout_below="@id/labelHourlyContent"
-                        android:gravity="center"
-                        android:text="@string/no_data"/>
-                </RelativeLayout>
-            </RelativeLayout>
-
-            <RelativeLayout
                 android:id="@+id/cardContainer3"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_below="@id/cardContainer2"
+                android:layout_below="@id/cardContainer"
                 android:layout_marginBottom="@dimen/activity_vertical_margin"
                 android:layout_marginTop="@dimen/card_margin"
                 android:background="@drawable/shape_card"
