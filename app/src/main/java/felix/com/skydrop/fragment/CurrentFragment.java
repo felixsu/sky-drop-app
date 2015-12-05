@@ -52,7 +52,7 @@ import felix.com.skydrop.constant.GlobalConstant;
 import felix.com.skydrop.constant.WeatherConstant;
 import felix.com.skydrop.model.ApplicationData;
 import felix.com.skydrop.model.WeatherData;
-import felix.com.skydrop.receiver_temp.AddressResultReceiver;
+import felix.com.skydrop.receiver.AddressResultReceiver;
 import felix.com.skydrop.service.FetchAddressIntentService;
 import felix.com.skydrop.util.ForecastConverter;
 
