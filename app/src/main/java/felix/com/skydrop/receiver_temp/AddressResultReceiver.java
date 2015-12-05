@@ -1,4 +1,4 @@
-package felix.com.skydrop.Receiver;
+package felix.com.skydrop.receiver_temp;
 
 import android.annotation.SuppressLint;
 import android.os.Bundle;
