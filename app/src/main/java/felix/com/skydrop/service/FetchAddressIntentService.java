@@ -73,6 +73,7 @@ public class FetchAddressIntentService extends IntentService {
     }
 
     private void deliverResultToReceiver(int resultCode, String message) {
+        Log.i(TAG, "sending back intent");
         Bundle bundle = new Bundle();
         bundle.putString(GeocoderConstant.RESULT_DATA_KEY, message);
         mReceiver.send(resultCode, bundle);

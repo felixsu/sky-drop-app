@@ -9,6 +9,8 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.TextView;
+import android.widget.Toast;
 
 import com.github.mikephil.charting.charts.LineChart;
 import com.github.mikephil.charting.components.XAxis;
@@ -53,6 +55,12 @@ public class ForecastFragment extends Fragment implements MyOnItemClickListener 
     @Bind(R.id.recycler_forecast)
     RecyclerView mRecyclerView;
 
+    @Bind(R.id.label_summary)
+    TextView mSummaryLabel;
+
+    @Bind(R.id.label_empty_recycler)
+    TextView mEmptyRecyclerLabel;
+
     View mView;
     ForecastAdapter mForecastAdapter;
 
@@ -61,6 +69,15 @@ public class ForecastFragment extends Fragment implements MyOnItemClickListener 
     ApplicationData mApplicationData;
     WeatherData mWeatherData;
     HashMap<String, Integer> mState;
+    boolean created;
+
+    public void setCreated(boolean created) {
+        this.created = created;
+    }
+
+    public boolean isCreated() {
+        return created;
+    }
 
     @Nullable
     @Override
@@ -76,6 +93,7 @@ public class ForecastFragment extends Fragment implements MyOnItemClickListener 
         Log.i(TAG, "entering on view created");
         initData();
         initView();
+        setCreated(true);
     }
 
     public void initData() {
@@ -88,6 +106,13 @@ public class ForecastFragment extends Fragment implements MyOnItemClickListener 
     }
 
     public void initView() {
+        mForecastAdapter = new ForecastAdapter(mWeatherData.getHourlyForecasts(), mWeatherData.getTimezone());
+        mForecastAdapter.setOnItemClickListener(this);
+        mRecyclerView.setAdapter(mForecastAdapter);
+
+        RecyclerView.LayoutManager layoutManager =
+                new LinearLayoutManager(mActivity);
+        mRecyclerView.setLayoutManager(layoutManager);
         mLineChart.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -97,17 +122,24 @@ public class ForecastFragment extends Fragment implements MyOnItemClickListener 
                 }
             }
         });
+        updateDisplay();
+    }
 
+    public void updateDisplay() {
+        mSummaryLabel.setText(mWeatherData.getHourSummary());
         if (mWeatherData.isInitialized()) {
-            mForecastAdapter = new ForecastAdapter(mWeatherData.getHourlyForecasts(), mWeatherData.getTimezone());
-            mForecastAdapter.setOnItemClickListener(this);
-            mRecyclerView.setAdapter(mForecastAdapter);
-
-            RecyclerView.LayoutManager layoutManager =
-                    new LinearLayoutManager(mActivity);
-            mRecyclerView.setLayoutManager(layoutManager);
-
+            mEmptyRecyclerLabel.setVisibility(View.GONE);
+            mRecyclerView.setVisibility(View.VISIBLE);
             drawChart();
+        } else {
+            mEmptyRecyclerLabel.setVisibility(View.VISIBLE);
+            mRecyclerView.setVisibility(View.GONE);
+            mEmptyRecyclerLabel.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    Toast.makeText(mActivity, "please refresh", Toast.LENGTH_SHORT).show();
+                }
+            });
         }
     }
 
@@ -207,7 +239,7 @@ public class ForecastFragment extends Fragment implements MyOnItemClickListener 
         if (mState.get(CHART_MODE_KEY) == CHART_TEMP_MODE) {
             axisLeft.setAxisMinValue((float) (minYAxisVal - 1d));
             axisLeft.setAxisMaxValue((float) (maxYAxisVal + 1d));
-            axisLeft.setEnabled(false);
+            axisLeft.setEnabled(true);
         } else {
             axisLeft.setEnabled(true);
             axisLeft.setAxisMinValue(0f);

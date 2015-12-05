@@ -16,11 +16,13 @@ public class ApplicationDataFactory {
     }
 
     public static ApplicationData getInstance(SharedPreferences preferences) {
-        ApplicationData data = new ApplicationData();
         if (preferences != null) {
+            ApplicationData data = new ApplicationData();
             data.setInitialized(preferences.getBoolean(ApplicationDataConstant.INIT, false));
             data.setAddress(preferences.getString(ApplicationDataConstant.ADDRESS, "Location N/A"));
+            return data;
+        } else {
+            return getInstance();
         }
-        return data;
     }
 }

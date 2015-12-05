@@ -20,6 +20,8 @@ public class WeatherFactory {
         weatherData.setIcon("clear-day");
         weatherData.setSummary("none");
         weatherData.setTimezone("America/Los_Angeles");
+        weatherData.setLatitude(0);
+        weatherData.setLongitude(0);
 
         HourlyForecast[] hourlyForecasts = new HourlyForecast[WeatherData.FORECAST_DISPLAYED];
         for (int i = 0; i < hourlyForecasts.length; i++) {
@@ -32,26 +34,18 @@ public class WeatherFactory {
         return weatherData;
     }
 
-    public static WeatherData getInstance(SharedPreferences preferences) throws JSONException {
-        WeatherData weatherData = new WeatherData();
-        if (preferences == null) {
-            weatherData.setInitialized(false);
-            weatherData.setHourSummary("none");
-            weatherData.setIcon("clear-day");
-            weatherData.setSummary("none");
-            weatherData.setTimezone("America/Los_Angeles");
-
-            HourlyForecast[] hourlyForecasts = new HourlyForecast[WeatherData.FORECAST_DISPLAYED];
-            for (int i = 0; i < hourlyForecasts.length; i++) {
-                HourlyForecast forecast = new HourlyForecast();
-                forecast.setSummary("none");
-                forecast.setIcon("clear-day");
-                hourlyForecasts[i] = forecast;
+    public static WeatherData getInstance(SharedPreferences preferences) {
+        if (preferences != null) {
+            WeatherData weatherData = new WeatherData();
+            try {
+                weatherData.getFromJson(preferences.getString(WeatherConstant.KEY_CURRENT_WEATHER, ""));
+                return weatherData;
+            } catch (JSONException e) {
+                return weatherData;
             }
-            weatherData.setHourlyForecasts(hourlyForecasts);
         } else {
-            weatherData.getFromJson(preferences.getString(WeatherConstant.KEY_CURRENT_WEATHER, null));
+            return getInstance();
         }
-        return weatherData;
+
     }
 }

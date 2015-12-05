@@ -1,6 +1,7 @@
 package felix.com.skydrop.fragment;
 
 
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.ColorFilter;
@@ -38,7 +39,6 @@ import com.squareup.okhttp.Response;
 import org.json.JSONException;
 
 import java.io.IOException;
-import java.util.HashMap;
 import java.util.concurrent.TimeUnit;
 
 import butterknife.Bind;
@@ -46,6 +46,7 @@ import butterknife.ButterKnife;
 import felix.com.skydrop.R;
 import felix.com.skydrop.Receiver.AddressResultReceiver;
 import felix.com.skydrop.activity.MainActivity;
+import felix.com.skydrop.adapter.SectionsPagerAdapter;
 import felix.com.skydrop.constant.Color;
 import felix.com.skydrop.constant.GeocoderConstant;
 import felix.com.skydrop.constant.WeatherConstant;
@@ -65,10 +66,6 @@ public class CurrentFragment extends Fragment
         LocationListener {
     private static final String TAG = CurrentFragment.class.getSimpleName();
 
-    private static final String CHART_MODE_KEY = "chart_mode";
-    private static final int CHART_TEMP_MODE = 0;
-    private static final int CHART_PRECIP_MODE = 1;
-
     private static final String KEY_REQUEST_LOCATION_STATE = "locationRequestState";
 
     private static final int REQUEST_CODE_RECOVER_PLAY_SERVICES = 200;
@@ -82,7 +79,7 @@ public class CurrentFragment extends Fragment
 
     WeatherData mWeatherData;
     ApplicationData mApplicationData;
-    HashMap<String, Integer> mState;
+    SectionsPagerAdapter mSectionsPagerAdapter;
 
     //root view
     private MainActivity mActivity;
@@ -133,6 +130,7 @@ public class CurrentFragment extends Fragment
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
+        Log.i(TAG, "entering on create");
         super.onCreate(savedInstanceState);
         initData();
         if (checkGooglePlayServices()) {
@@ -144,6 +142,7 @@ public class CurrentFragment extends Fragment
     @Nullable
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+        Log.i(TAG, "entering on create view");
         mLayout = inflater.inflate(R.layout.fragment_current_weather, container, false);
         ButterKnife.bind(this, mLayout);
         initView();
@@ -152,6 +151,7 @@ public class CurrentFragment extends Fragment
 
     @Override
     public void onStart() {
+        Log.i(TAG, "entering on start");
         if (mResultReceiver.getReceiver() == null){
             mResultReceiver.setReceiver(this);
         }
@@ -162,7 +162,16 @@ public class CurrentFragment extends Fragment
     }
 
     @Override
+    public void onResume() {
+        if (mResultReceiver.getReceiver() == null) {
+            mResultReceiver.setReceiver(this);
+        }
+        super.onResume();
+    }
+
+    @Override
     public void onPause() {
+        Log.i(TAG, "entering on pause");
         if (mResultReceiver.getReceiver() != null){
             mResultReceiver.setReceiver(null);
         }
@@ -173,27 +182,33 @@ public class CurrentFragment extends Fragment
     }
 
     @Override
+    public void onStop() {
+        Log.i(TAG, "entering on stop");
+        super.onStop();
+    }
+
+    @Override
     public void onRefresh() {
-        Log.i(TAG, "on refresh called");
+        Log.i(TAG, "entering on refresh");
         if (mLocation != null) {
             getForecast(mLocation.getLatitude(), mLocation.getLongitude());
-            Log.i(TAG, "location updated");
+            Log.i(TAG, "refresh using new data");
         } else {
             getForecast(mWeatherData.getLatitude(), mWeatherData.getLongitude());
+            Log.i(TAG, "refresh using old data");
         }
     }
 
     protected void initData() {
-
+        Log.i(TAG, "entering init Data");
         mActivity = (MainActivity) getActivity();
 
         mResultReceiver = new AddressResultReceiver(new Handler());
         mResultReceiver.setReceiver(this);
-        mState = new HashMap<>();
-        mState.put(CHART_MODE_KEY, CHART_TEMP_MODE);
 
         mWeatherData = mActivity.getWeatherData();
         mApplicationData = mActivity.getApplicationData();
+        mSectionsPagerAdapter = mActivity.getSectionsPagerAdapter();
     }
 
     protected void initView() {
@@ -202,7 +217,13 @@ public class CurrentFragment extends Fragment
         mRefreshLayout.setColorSchemeColors(Color.RED, Color.BLUE, Color.YELLOW, Color.GREEN);
     }
 
+    @SuppressLint("SetTextI18n")
     protected void updateDisplay() {
+        Log.i(TAG, "entering update display");
+        ForecastFragment forecastFragment = (ForecastFragment) mSectionsPagerAdapter.getItem(1);
+        if (forecastFragment.isCreated()) {
+            forecastFragment.updateDisplay();
+        }
         ColorFilter filter = new LightingColorFilter(Color.BLACK, 0xFF3F51B5);
         Drawable drawable = mActivity.getResources().getDrawable(ForecastConverter.getIcon(mWeatherData.getIcon()));
         if (drawable != null) {
@@ -219,7 +240,7 @@ public class CurrentFragment extends Fragment
             mTimeLabelProperties.setText(time.substring(time.length() - 2, time.length()));
 
             mSummaryLabel.setText(mWeatherData.getSummary());
-            mRealFeelLabel.setText(String.format("Real Feel : %s",
+            mRealFeelLabel.setText(String.format("Feels like : %s°",
                     ForecastConverter.getString(mWeatherData.getApparentTemperature(), true, false)));
             //todo get uv index or remove it :(
             mUvIndexLabel.setText("NA");
@@ -249,6 +270,7 @@ public class CurrentFragment extends Fragment
             mWindLabel.setText(R.string.not_available);
             mWindDirectionLabel.setText(R.string.not_available);
         }
+        Log.i(TAG, "finish on update display");
     }
 
     //etc
@@ -269,6 +291,7 @@ public class CurrentFragment extends Fragment
     }
 
     private void getForecast(double latitude, double longitude) {
+        Log.i(TAG, "entering get forecast");
         if (isNetworkAvailable()) {
             OkHttpClient client = new OkHttpClient();
             client.setConnectTimeout(5, TimeUnit.SECONDS);
@@ -279,6 +302,7 @@ public class CurrentFragment extends Fragment
             call.enqueue(new Callback() {
                 @Override
                 public void onFailure(Request request, IOException e) {
+                    Log.i(TAG, "entering on failure http");
                     mActivity.runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
@@ -290,6 +314,7 @@ public class CurrentFragment extends Fragment
 
                 @Override
                 public void onResponse(Response response) {
+                    Log.i(TAG, "entering on response http");
                     try {
                         String jsonData = response.body().string();
                         Log.v(TAG, response.body().string());
@@ -297,7 +322,6 @@ public class CurrentFragment extends Fragment
                             mWeatherData.getFromJson(jsonData);
                             startIntentService();
                         } else {
-                            //todo optimize
                             alertUserAboutError();
                             mActivity.runOnUiThread(new Runnable() {
                                 @Override
@@ -307,11 +331,8 @@ public class CurrentFragment extends Fragment
                                 }
                             });
                         }
-                    } catch (IOException e) {
+                    } catch (IOException | JSONException e) {
                         Log.e(TAG, "Exception caught", e);
-                        mRefreshLayout.setRefreshing(false);
-                    } catch (JSONException e) {
-                        Log.e(TAG, "JSON exception caught", e);
                         mRefreshLayout.setRefreshing(false);
                     }
                 }
@@ -324,15 +345,16 @@ public class CurrentFragment extends Fragment
 
     @Override
     public void onReceiveResult(int resultCode, Bundle resultData) {
+        Log.i(TAG, "entering on receive result");
         String address;
         if (resultCode == GeocoderConstant.SUCCESS_RESULT) {
             Log.i(TAG, "geocoder success");
             address = resultData.getString(GeocoderConstant.RESULT_DATA_KEY);
+            mApplicationData.setAddress(address);
         } else {
             Log.i(TAG, "geocoder unsuccessful");
-            address = "Location N/A";
         }
-        mApplicationData.setAddress(address);
+        Log.i(TAG, "address set");
         mActivity.runOnUiThread(new Runnable() {
             @Override
             public void run() {
@@ -343,6 +365,7 @@ public class CurrentFragment extends Fragment
     }
 
     protected void startIntentService() {
+        Log.i(TAG, "send intent into geocoder service");
         Intent intent = new Intent(getActivity(), FetchAddressIntentService.class);
         intent.putExtra(GeocoderConstant.RECEIVER, mResultReceiver);
         intent.putExtra(GeocoderConstant.LOCATION_DATA_EXTRA, mLocation);
@@ -400,6 +423,7 @@ public class CurrentFragment extends Fragment
 
     @Override
     public void onConnectionFailed(ConnectionResult connectionResult) {
+        Log.i(TAG, "entering on gms connected failure");
         Log.e(TAG, connectionResult.getErrorMessage());
     }
 
@@ -408,11 +432,15 @@ public class CurrentFragment extends Fragment
         Log.i(TAG, "entering on Location changed");
         if (location != null) {
             mLocation = location;
+            Log.i(TAG, "Location found");
+            Toast.makeText(mActivity, "location updated", Toast.LENGTH_SHORT).show();
         } else {
             Log.i(TAG, "Location not found");
+            Toast.makeText(mActivity, "location not updated", Toast.LENGTH_SHORT).show();
         }
         if (mGoogleApiClient != null) {
             mGoogleApiClient.disconnect();
+            Log.i(TAG, "gms service disconnected");
         }
         mRequestingLocation = false;
     }

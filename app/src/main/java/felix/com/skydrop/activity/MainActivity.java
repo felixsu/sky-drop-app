@@ -38,9 +38,11 @@ import felix.com.skydrop.constant.ApplicationDataConstant;
 import felix.com.skydrop.constant.WeatherConstant;
 import felix.com.skydrop.constant.SettingConstant;
 import felix.com.skydrop.factory.ApplicationDataFactory;
+import felix.com.skydrop.factory.SettingDataFactory;
 import felix.com.skydrop.factory.WeatherFactory;
 import felix.com.skydrop.fragment.InfoDialogFragment;
 import felix.com.skydrop.model.ApplicationData;
+import felix.com.skydrop.model.SettingData;
 import felix.com.skydrop.model.WeatherData;
 
 public class MainActivity extends AppCompatActivity
@@ -60,25 +62,27 @@ public class MainActivity extends AppCompatActivity
     //data
     private WeatherData mWeatherData;
     private ApplicationData mApplicationData;
+    private SettingData mSettingData;
 
     public WeatherData getWeatherData() {
         return mWeatherData;
-    }
-
-    public void setWeatherData(WeatherData weatherData) {
-        mWeatherData = weatherData;
     }
 
     public ApplicationData getApplicationData() {
         return mApplicationData;
     }
 
-    public void setApplicationData(ApplicationData applicationData) {
-        mApplicationData = applicationData;
+    public SettingData getSettingData() {
+        return mSettingData;
+    }
+
+    public SectionsPagerAdapter getSectionsPagerAdapter() {
+        return mSectionsPagerAdapter;
     }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        Log.d(TAG, "entering on create");
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         initView();
@@ -86,7 +90,8 @@ public class MainActivity extends AppCompatActivity
         updateState(savedInstanceState);
     }
 
-    private void initView(){
+    private void initView() {
+        Log.d(TAG, "entering init view");
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
@@ -108,26 +113,27 @@ public class MainActivity extends AppCompatActivity
         tabLayout.setupWithViewPager(mViewPager);
 
     }
-    private void initField(){
+
+    private void initField() {
+        Log.d(TAG, "entering init field");
         SharedPreferences applicationData = getSharedPreferences(ApplicationDataConstant.KEY, Context.MODE_PRIVATE);
         SharedPreferences settingData = getSharedPreferences(SettingConstant.KEY, Context.MODE_PRIVATE);
         SharedPreferences weatherData = getSharedPreferences(WeatherConstant.KEY, Context.MODE_PRIVATE);
-
-        try {
-            mApplicationData = ApplicationDataFactory.getInstance(applicationData);
-            if (mApplicationData.isInitialized()) {
-                mWeatherData = WeatherFactory.getInstance(weatherData);
-            } else {
-                mWeatherData = WeatherFactory.getInstance();
-            }
-        } catch (JSONException e) {
-            e.printStackTrace();
-            Log.e(TAG, "parsing error");
+        mApplicationData = ApplicationDataFactory.getInstance(applicationData);
+        if (mApplicationData.isInitialized()) {
+            Log.d(TAG, "init using old data");
+            mWeatherData = WeatherFactory.getInstance(weatherData);
+            mSettingData = SettingDataFactory.getInstance(settingData);
+        } else {
+            Log.d(TAG, "init using default data");
+            mWeatherData = WeatherFactory.getInstance();
+            mSettingData = SettingDataFactory.getInstance();
         }
+
     }
 
-    private void updateState(Bundle savedState){
-        if (savedState != null){
+    private void updateState(Bundle savedState) {
+        if (savedState != null) {
             Log.i(TAG, "state not empty");
             mRequestingLocation = savedState.getBoolean(KEY_REQUEST_LOCATION_STATE, false);
         }
@@ -135,6 +141,7 @@ public class MainActivity extends AppCompatActivity
 
     @Override
     protected void onStart() {
+        Log.d(TAG, "entering on start");
         super.onStart();
         long time = System.currentTimeMillis();
         String currentHourString = new SimpleDateFormat("hh").format(new Date(time));
@@ -149,22 +156,26 @@ public class MainActivity extends AppCompatActivity
             } else {
                 navBarHeaderContainer.setBackgroundResource(R.drawable.head_paper_dawn);
             }
-        }else{
+        } else {
             Log.i(TAG, "header null");
         }
     }
 
     @Override
     protected void onPause() {
-        super.onPause();
-        getApplicationData().setInitialized(true);
+        Log.d(TAG, "entering on pause");
+        getApplicationData().setInitialized(true); //means all variable have its initial value
         SharedPreferences.Editor applicationDataEditor = getSharedPreferences(ApplicationDataConstant.KEY, Context.MODE_PRIVATE).edit();
         SharedPreferences.Editor settingDataEditor = getSharedPreferences(SettingConstant.KEY, Context.MODE_PRIVATE).edit();
         SharedPreferences.Editor weatherDataEditor = getSharedPreferences(WeatherConstant.KEY, Context.MODE_PRIVATE).edit();
 
         applicationDataEditor.putBoolean(ApplicationDataConstant.INIT, getApplicationData().isInitialized()).apply();
         applicationDataEditor.putString(ApplicationDataConstant.ADDRESS, getApplicationData().getAddress()).apply();
+
+        settingDataEditor.putInt(SettingConstant.TEMP_UNIT, getSettingData().getUnit()).apply();
         weatherDataEditor.putString(WeatherConstant.KEY_CURRENT_WEATHER, getWeatherData().toJson()).apply();
+        super.onPause();
+        Log.d(TAG, "finish store shared data");
     }
 
     @Override
@@ -175,6 +186,7 @@ public class MainActivity extends AppCompatActivity
 
     @Override
     public void onBackPressed() {
+        Log.d(TAG, "entering on back pressed");
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         if (drawer.isDrawerOpen(GravityCompat.START)) {
             drawer.closeDrawer(GravityCompat.START);
@@ -196,7 +208,7 @@ public class MainActivity extends AppCompatActivity
             Toast.makeText(this, "Setting Pressed", Toast.LENGTH_SHORT).show();
             return true;
         }
-        if (id == R.id.action_refresh){
+        if (id == R.id.action_refresh) {
             Toast.makeText(this, "Refresh Pressed", Toast.LENGTH_SHORT).show();
             return true;
         }

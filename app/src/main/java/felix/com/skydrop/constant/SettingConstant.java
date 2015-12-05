@@ -5,4 +5,6 @@ package felix.com.skydrop.constant;
  */
 public class SettingConstant {
     public static final String KEY = "setting_key";
+
+    public static final String TEMP_UNIT = "temp_unit";
 }

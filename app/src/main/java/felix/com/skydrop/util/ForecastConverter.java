@@ -1,15 +1,11 @@
 package felix.com.skydrop.util;
 
-import android.graphics.Color;
-import android.graphics.ColorFilter;
-import android.graphics.LightingColorFilter;
-import android.graphics.drawable.Drawable;
-
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.TimeZone;
 
 import felix.com.skydrop.R;
+import felix.com.skydrop.constant.Color;
 
 /**
  * Created by fsoewito on 11/26/2015.
@@ -52,6 +48,31 @@ public class ForecastConverter {
                 return R.drawable.ic_weather_snowy;
             default:
                 return R.drawable.ic_weather_sunny;
+        }
+    }
+
+    public static int getColor(String icon) {
+        switch (icon) {
+            case ("clear-day"):
+                return Color.YELLOW;
+            case ("clear-night"):
+                return Color.YELLOW;
+            case ("rain"):
+                return 0xFF03A9F4;
+            case ("snow"):
+                return Color.GREY_LIGHT;
+            case ("partly-cloudy-day"):
+                return 0xFFB6B6B6;
+            case ("cloudy"):
+                return 0xFFB6B6B6;
+            case ("partly-cloudy-night"):
+                return 0xFFB6B6B6;
+            case ("fog"):
+                return 0xFFB6B6B6;
+            case ("sleet"):
+                return Color.GREY_LIGHT;
+            default:
+                return Color.YELLOW;
         }
     }
 

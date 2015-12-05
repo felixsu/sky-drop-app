@@ -3,6 +3,7 @@ package felix.com.skydrop.adapter;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
+import android.support.v4.app.FragmentStatePagerAdapter;
 
 import felix.com.skydrop.fragment.CurrentFragment;
 import felix.com.skydrop.fragment.ForecastFragment;
@@ -10,7 +11,7 @@ import felix.com.skydrop.fragment.ForecastFragment;
 /**
  * Created by fsoewito on 12/4/2015.
  */
-public class SectionsPagerAdapter extends FragmentPagerAdapter {
+public class SectionsPagerAdapter extends FragmentStatePagerAdapter {
     public SectionsPagerAdapter(FragmentManager fm) {
         super(fm);
     }

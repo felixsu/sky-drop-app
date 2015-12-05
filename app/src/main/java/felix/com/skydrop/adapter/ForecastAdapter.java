@@ -96,6 +96,8 @@ public class ForecastAdapter extends RecyclerView.Adapter<ForecastAdapter.Foreca
             mPrecipLabel.setText(precipValue);
             mTemperatureLabel.setText(temperatureValue);
             mWindLabel.setText(windValue);
+
+            mTimeLabel.setBackgroundColor(ForecastConverter.getColor(forecast.getIcon()));
         }
     }
 }

@@ -11,4 +11,5 @@
     <dimen name="titleCard">21sp</dimen>
     <dimen name="card_elevation">4dp</dimen>
     <dimen name="card_margin">8dp</dimen>
+    <dimen name="card_halfMargin">4dp</dimen>
 </resources>
