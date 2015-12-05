@@ -44,6 +44,7 @@ import java.util.concurrent.TimeUnit;
 import butterknife.Bind;
 import butterknife.ButterKnife;
 import felix.com.skydrop.R;
+import felix.com.skydrop.Receiver.AddressResultReceiver;
 import felix.com.skydrop.activity.MainActivity;
 import felix.com.skydrop.adapter.SectionsPagerAdapter;
 import felix.com.skydrop.constant.Color;
@@ -52,7 +53,6 @@ import felix.com.skydrop.constant.GlobalConstant;
 import felix.com.skydrop.constant.WeatherConstant;
 import felix.com.skydrop.model.ApplicationData;
 import felix.com.skydrop.model.WeatherData;
-import felix.com.skydrop.receiver.AddressResultReceiver;
 import felix.com.skydrop.service.FetchAddressIntentService;
 import felix.com.skydrop.util.ForecastConverter;
 
