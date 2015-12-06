@@ -274,6 +274,7 @@
                         android:text="Speed"/>
 
                     <TextView
+                        android:id="@+id/label_poweredBy"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_alignParentBottom="true"
@@ -281,7 +282,8 @@
                         android:layout_below="@id/labelPressureTitle"
                         android:paddingTop="32dp"
                         android:text="Powered by Forecast.io"
-                        android:textSize="10sp"/>
+                        android:textSize="10sp"
+                        android:textStyle="italic"/>
                 </RelativeLayout>
             </RelativeLayout>
         </RelativeLayout>

@@ -1,6 +1,7 @@
 package felix.com.skydrop.activity;
 
 import android.content.Context;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.support.design.widget.NavigationView;
@@ -29,8 +30,6 @@ import felix.com.skydrop.constant.WeatherConstant;
 import felix.com.skydrop.factory.ApplicationDataFactory;
 import felix.com.skydrop.factory.SettingDataFactory;
 import felix.com.skydrop.factory.WeatherFactory;
-import felix.com.skydrop.fragment.CurrentFragment;
-import felix.com.skydrop.fragment.ForecastFragment;
 import felix.com.skydrop.fragment.InfoDialogFragment;
 import felix.com.skydrop.model.ApplicationData;
 import felix.com.skydrop.model.SettingData;
@@ -46,8 +45,6 @@ public class MainActivity extends AppCompatActivity
     private FragmentManager mFragmentManager;
     private ViewPager mViewPager;
     private SectionsPagerAdapter mSectionsPagerAdapter;
-    private CurrentFragment mCurrentFragment;
-    private ForecastFragment mForecastFragment;
 
     //data
     private WeatherData mWeatherData;
@@ -180,10 +177,6 @@ public class MainActivity extends AppCompatActivity
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         int id = item.getItemId();
-        if (id == R.id.action_settings) {
-            Toast.makeText(this, "Setting Pressed", Toast.LENGTH_SHORT).show();
-            return true;
-        }
         if (id == R.id.action_refresh) {
             Toast.makeText(this, "Refresh Pressed", Toast.LENGTH_SHORT).show();
             return true;
@@ -196,7 +189,8 @@ public class MainActivity extends AppCompatActivity
         int id = item.getItemId();
 
         if (id == R.id.nav_setting) {
-            Toast.makeText(this, "setting pressed", Toast.LENGTH_SHORT).show();
+            Intent intent = new Intent(this, SettingsActivity.class);
+            startActivity(intent);
         } else if (id == R.id.nav_info) {
             showInfo();
         }

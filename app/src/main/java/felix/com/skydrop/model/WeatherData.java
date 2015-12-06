@@ -8,9 +8,10 @@ import felix.com.skydrop.constant.WeatherConstant;
 
 /**
  * Created by fsoewito on 11/26/2015.
+ * store every value of weather data and some basics method to handle the data
  */
 public class WeatherData extends BaseWeather {
-    public static final int FORECAST_DISPLAYED = 6;
+    public static final int N_FORECAST = 8;
 
     protected boolean initialized;
     protected long mTime;
@@ -158,9 +159,9 @@ public class WeatherData extends BaseWeather {
         setHourSummary(hourly.getString(WeatherConstant.KEY_SUMMARY));
 
         JSONArray hourlyData = hourly.getJSONArray(WeatherConstant.KEY_DATA);
-        HourlyForecast[] hourlyForecasts = new HourlyForecast[hourlyData.length()];
+        HourlyForecast[] hourlyForecasts = new HourlyForecast[N_FORECAST];
 
-        for (int i = 0; i < FORECAST_DISPLAYED; i++) {
+        for (int i = 0; i < hourlyForecasts.length; i++) {
             HourlyForecast d = new HourlyForecast();
             JSONObject o = hourlyData.getJSONObject(i);
             d.setPrecipProbability(o.getDouble(WeatherConstant.KEY_PRECIP));
@@ -209,7 +210,7 @@ public class WeatherData extends BaseWeather {
             JSONObject hourly = new JSONObject();
             hourly.put(WeatherConstant.KEY_SUMMARY, getHourSummary());
             JSONArray hourlyArray = new JSONArray();
-            for (int i = 0; i < FORECAST_DISPLAYED; i++) {
+            for (int i = 0; i < N_FORECAST; i++) {
                 JSONObject o = new JSONObject();
                 HourlyForecast data = getHourlyForecasts()[i];
                 o.put(WeatherConstant.KEY_TIME, data.getTime());

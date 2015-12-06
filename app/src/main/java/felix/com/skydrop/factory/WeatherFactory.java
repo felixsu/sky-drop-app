@@ -10,6 +10,7 @@ import felix.com.skydrop.model.WeatherData;
 
 /**
  * Created by fsoewito on 11/26/2015.
+ * create default or pre configured weather data
  */
 public class WeatherFactory {
 
@@ -23,7 +24,7 @@ public class WeatherFactory {
         weatherData.setLatitude(0);
         weatherData.setLongitude(0);
 
-        HourlyForecast[] hourlyForecasts = new HourlyForecast[WeatherData.FORECAST_DISPLAYED];
+        HourlyForecast[] hourlyForecasts = new HourlyForecast[WeatherData.N_FORECAST];
         for (int i = 0; i < hourlyForecasts.length; i++) {
             HourlyForecast forecast = new HourlyForecast();
             forecast.setSummary("none");

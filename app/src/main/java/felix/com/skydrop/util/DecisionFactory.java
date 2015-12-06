@@ -1,7 +1,7 @@
 package felix.com.skydrop.util;
 
-import felix.com.skydrop.model.WeatherData;
 import felix.com.skydrop.model.HourlyForecast;
+import felix.com.skydrop.model.WeatherData;
 
 /**
  * Created by fsoewito on 12/1/2015.
@@ -27,9 +27,9 @@ public class DecisionFactory {
     private static final String IT_WILL_BE_EXTREMELY_COLD = "get inside your blanket in few hours, don't get flu";
 
     public static String generateForecastDecision(HourlyForecast[] hourlyForecasts) {
-        double precipProbArray[] = new double[WeatherData.FORECAST_DISPLAYED];
-        double tempArray[] = new double[WeatherData.FORECAST_DISPLAYED];
-        for (int i = 0; i < WeatherData.FORECAST_DISPLAYED; i++) {
+        double precipProbArray[] = new double[WeatherData.N_FORECAST];
+        double tempArray[] = new double[WeatherData.N_FORECAST];
+        for (int i = 0; i < WeatherData.N_FORECAST; i++) {
             precipProbArray[i] = hourlyForecasts[i].getPrecipProbability()*100;
             tempArray[i] = hourlyForecasts[i].getTemperature();
         }
@@ -39,22 +39,22 @@ public class DecisionFactory {
         boolean hotFlag = false;
         boolean coldFlag = false;
 
-        for (int i = 0; i< precipProbArray.length; i++){
-            if (precipProbArray[i] > HIGH_CHANCE_RAIN){
+        for (double aPrecipProbArray : precipProbArray) {
+            if (aPrecipProbArray > HIGH_CHANCE_RAIN) {
                 highChanceRainFlag = true;
                 break;
-            }else if (precipProbArray[i] > CHANCE_RAIN){
+            } else if (aPrecipProbArray > CHANCE_RAIN) {
                 chanceRainFlag = true;
                 break;
             }
         }
 
-        for (int i = 0; i<tempArray.length; i++){
-            if (tempArray[i] < LOW_TEMP_THRESHOLD){
+        for (double aTempArray : tempArray) {
+            if (aTempArray < LOW_TEMP_THRESHOLD) {
                 coldFlag = true;
                 break;
             }
-            if (tempArray[i] > HIGH_CHANCE_RAIN){
+            if (aTempArray > HIGH_CHANCE_RAIN) {
                 hotFlag = true;
                 break;
             }
@@ -68,10 +68,10 @@ public class DecisionFactory {
         else if (chanceRainFlag && hotFlag) {
             title = IT_MAY_BE_RAIN_TITLE;
             body = IT_MAY_BE_RAIN;
-        }else if (chanceRainFlag && !hotFlag){
+        } else if (chanceRainFlag) {
             title = IT_MAY_BE_RAIN_TITLE;
             body = IT_WILL_BE_CLOUDY;
-        } else if (!chanceRainFlag && hotFlag) {
+        } else if (hotFlag) {
             title = IT_WILL_BE_CLEAR_TITLE;
             body = IT_WILL_BE_EXTREMELY_HOT;
         }else if (coldFlag){
