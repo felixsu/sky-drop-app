@@ -8,7 +8,7 @@ android {
         applicationId "felix.com.skydrop"
         minSdkVersion 16
         targetSdkVersion 23
-        versionCode 11
+        versionCode 12
         versionName "1.4"
     }
     buildTypes {

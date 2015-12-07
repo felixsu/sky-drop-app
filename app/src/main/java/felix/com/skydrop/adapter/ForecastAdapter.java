@@ -4,7 +4,6 @@ import android.content.Context;
 import android.graphics.ColorFilter;
 import android.graphics.LightingColorFilter;
 import android.graphics.drawable.Drawable;
-import android.graphics.drawable.GradientDrawable;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -36,7 +35,6 @@ import felix.com.skydrop.viewholder.MyViewHolder;
 
 /**
  * Created by fsoewito on 12/4/2015.
- *
  */
 public class ForecastAdapter extends RecyclerView.Adapter<MyViewHolder<WeatherData>> {
 
@@ -87,11 +85,13 @@ public class ForecastAdapter extends RecyclerView.Adapter<MyViewHolder<WeatherDa
         String mTimezone;
 
         TextView mTimeLabel;
+        TextView mTimeLabelProp;
         ImageView mWeatherIcon;
         TextView mSummaryLabel;
         TextView mPrecipLabel;
         TextView mTemperatureLabel;
         TextView mWindLabel;
+        ImageView mIndicatorIcon;
 
         public ForecastViewHolder(View itemView, MyOnItemClickListener listener, String timezone) {
             super(itemView);
@@ -103,7 +103,9 @@ public class ForecastAdapter extends RecyclerView.Adapter<MyViewHolder<WeatherDa
             mSummaryLabel = (TextView) itemView.findViewById(R.id.item_label_summary);
             mPrecipLabel = (TextView) itemView.findViewById(R.id.item_label_precip);
             mTemperatureLabel = (TextView) itemView.findViewById(R.id.item_label_temperature);
+            mTimeLabelProp = (TextView) itemView.findViewById(R.id.item_label_time_prop);
             mWindLabel = (TextView) itemView.findViewById(R.id.item_label_wind);
+            mIndicatorIcon = (ImageView) itemView.findViewById(R.id.item_icon_indicator);
 
             itemView.setOnClickListener(this);
         }
@@ -133,16 +135,25 @@ public class ForecastAdapter extends RecyclerView.Adapter<MyViewHolder<WeatherDa
             if (drawable != null) {
                 drawable.setColorFilter(filter);
             }
-
-            mTimeLabel.setText(timeValue);
+            if (timeValue.length() == 4) {
+                mTimeLabel.setText(timeValue.substring(0, 2));
+                mTimeLabelProp.setText(timeValue.substring(2, 4));
+            } else {
+                mTimeLabel.setText(timeValue.substring(0, 1));
+                mTimeLabelProp.setText(timeValue.substring(1, 3));
+            }
             mWeatherIcon.setImageDrawable(drawable);
             mSummaryLabel.setText(forecast.getSummary());
             mPrecipLabel.setText(precipValue);
             mTemperatureLabel.setText(temperatureValue);
             mWindLabel.setText(windValue);
 
-            mTimeLabel.setTextColor(ForecastConverter.getTextColor(forecast.getIcon()));
-            ((GradientDrawable) mTimeLabel.getBackground()).setColor(ForecastConverter.getColor(forecast.getIcon()));
+            ColorFilter filter2 = new LightingColorFilter(Color.BLACK, ForecastConverter.getColor(forecast.getIcon()));
+            Drawable drawable2 = mContext.getResources().getDrawable(R.drawable.ic_dot);
+            if (drawable != null) {
+                drawable2.setColorFilter(filter2);
+            }
+            mIndicatorIcon.setImageDrawable(drawable2);
         }
 
     }

@@ -17,40 +17,54 @@
         android:layout_height="wrap_content"
         android:layout_margin="@dimen/card_margin">
 
-        <TextView
-            android:id="@+id/item_label_time"
+
+        <ImageView
+            android:id="@+id/item_icon_forecast"
             android:layout_width="72dp"
             android:layout_height="72dp"
-            android:background="@drawable/shape_oval"
-            android:gravity="center"
-            android:textSize="21sp"
-            android:textStyle="bold"
-            tools:text="10 PM"/>
+            android:adjustViewBounds="true"
+            android:scaleType="fitXY"
+            tools:src="@drawable/ic_weather_sunny"/>
 
         <RelativeLayout
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_alignBottom="@id/item_label_time"
-            android:layout_alignTop="@id/item_label_time"
-            android:layout_toRightOf="@id/item_label_time"
+            android:layout_alignBottom="@id/item_icon_forecast"
+            android:layout_alignTop="@id/item_icon_forecast"
+            android:layout_toRightOf="@id/item_icon_forecast"
             android:paddingLeft="8dp">
 
-
-            <ImageView
-                android:id="@+id/item_icon_forecast"
+            <RelativeLayout
+                android:id="@+id/item_container_time"
                 android:layout_width="48dp"
                 android:layout_height="48dp"
-                android:adjustViewBounds="true"
-                android:scaleType="fitXY"
-                tools:src="@drawable/ic_weather_sunny"/>
+                android:gravity="center">
+
+                <TextView
+                    android:id="@+id/item_label_time"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center"
+                    android:textSize="21sp"
+                    tools:text="10"/>
+
+                <TextView
+                    android:id="@+id/item_label_time_prop"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_below="@id/item_label_time"
+                    android:gravity="center"
+                    tools:text="PM"/>
+            </RelativeLayout>
+
 
             <TextView
                 android:id="@+id/item_label_temperature"
                 android:layout_width="48dp"
                 android:layout_height="wrap_content"
-                android:layout_alignBottom="@id/item_icon_forecast"
+                android:layout_alignBottom="@id/item_container_time"
                 android:layout_alignParentRight="true"
-                android:layout_alignTop="@id/item_icon_forecast"
+                android:layout_alignTop="@id/item_container_time"
                 android:gravity="center_vertical"
                 android:text="28°"
                 android:textSize="24sp"/>
@@ -58,10 +72,10 @@
             <RelativeLayout
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_alignBottom="@id/item_icon_forecast"
-                android:layout_alignTop="@id/item_icon_forecast"
+                android:layout_alignBottom="@id/item_container_time"
+                android:layout_alignTop="@id/item_container_time"
                 android:layout_toLeftOf="@+id/item_label_temperature"
-                android:layout_toRightOf="@id/item_icon_forecast"
+                android:layout_toRightOf="@id/item_container_time"
                 android:gravity="center_vertical"
                 android:paddingLeft="16dp">
 
@@ -84,7 +98,7 @@
                 android:id="@+id/item_icon_wind"
                 android:layout_width="24dp"
                 android:layout_height="24dp"
-                android:layout_below="@id/item_icon_forecast"
+                android:layout_below="@id/item_container_time"
                 android:src="@drawable/ic_wind"/>
 
             <TextView
@@ -96,6 +110,15 @@
                 android:layout_toRightOf="@id/item_icon_wind"
                 android:gravity="center_vertical"
                 tools:text="25 kmh, NNE"/>
+
+            <ImageView
+                android:id="@+id/item_icon_indicator"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignBottom="@id/item_label_wind"
+                android:layout_alignLeft="@id/item_label_temperature"
+                android:layout_alignTop="@id/item_label_wind"
+                android:src="@drawable/ic_dot"/>
         </RelativeLayout>
     </RelativeLayout>
 
