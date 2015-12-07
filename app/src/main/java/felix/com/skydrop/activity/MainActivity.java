@@ -151,8 +151,14 @@ public class MainActivity extends AppCompatActivity
         applicationDataEditor.putBoolean(ApplicationDataConstant.INIT, getApplicationData().isInitialized()).apply();
         applicationDataEditor.putString(ApplicationDataConstant.ADDRESS, getApplicationData().getAddress()).apply();
 
-        settingDataEditor.putInt(SettingConstant.TEMP_UNIT, getSettingData().getUnit()).apply();
+        settingDataEditor.putBoolean(SettingConstant.KEY_TEMP_UNIT, getSettingData().isTemperatureUnit());
+        settingDataEditor.putBoolean(SettingConstant.KEY_WIND_UNIT, getSettingData().isWindUnit());
+        settingDataEditor.putBoolean(SettingConstant.KEY_PRESSURE_UNIT, getSettingData().isPressureUnit());
+        settingDataEditor.putBoolean(SettingConstant.KEY_PAID_VERSION, getSettingData().isPaidVersion());
+        settingDataEditor.putBoolean(SettingConstant.KEY_UPDATE, getSettingData().isAutoUpdate()).apply();
+
         weatherDataEditor.putString(WeatherConstant.KEY_CURRENT_WEATHER, getWeatherData().toJson()).apply();
+
         super.onPause();
         Log.d(TAG, "finish store shared data");
     }

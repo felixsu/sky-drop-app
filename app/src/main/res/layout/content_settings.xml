@@ -13,9 +13,11 @@
     tools:context="felix.com.skydrop.activity.SettingsActivity"
     tools:showIn="@layout/activity_settings">
 
-    <TextView
+    <android.support.v7.widget.RecyclerView
+        android:id="@+id/recycler_setting"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:gravity="center"
-        android:text="Coming Soon ~"/>
+        tools:listitem="@layout/item_setting_layout_boolean">
+
+    </android.support.v7.widget.RecyclerView>
 </RelativeLayout>

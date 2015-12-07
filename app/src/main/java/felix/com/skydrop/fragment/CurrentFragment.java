@@ -100,10 +100,12 @@ public class CurrentFragment extends Fragment
     TextView mWindLabel;
     @Bind(R.id.labelWindDirection)
     TextView mWindDirectionLabel;
+
     private Location mLocation;
     private LocationRequest mLocationRequest;
     private GoogleApiClient mGoogleApiClient;
     private boolean mRequestingLocation = false;
+    private int mNRequest = 0;
     private AddressResultReceiver mResultReceiver;
     //root view
     private MainActivity mActivity;
@@ -141,12 +143,6 @@ public class CurrentFragment extends Fragment
     @Override
     public void onStart() {
         Log.i(TAG, "entering on start");
-        if (mResultReceiver.getReceiver() == null) {
-            mResultReceiver.setReceiver(this);
-        }
-        if (mGoogleApiClient != null) {
-            mGoogleApiClient.connect();
-        }
         super.onStart();
     }
 
@@ -154,6 +150,9 @@ public class CurrentFragment extends Fragment
     public void onResume() {
         if (mResultReceiver.getReceiver() == null) {
             mResultReceiver.setReceiver(this);
+        }
+        if (mGoogleApiClient != null) {
+            mGoogleApiClient.connect();
         }
         super.onResume();
     }
@@ -203,6 +202,7 @@ public class CurrentFragment extends Fragment
 
         mWeatherData = mActivity.getWeatherData();
         mApplicationData = mActivity.getApplicationData();
+        mNRequest = 0;
     }
 
     protected void initView() {
@@ -426,15 +426,17 @@ public class CurrentFragment extends Fragment
     @Override
     public void onLocationChanged(Location location) {
         Log.i(TAG, "entering on Location changed");
+        mNRequest++;
         if (location != null) {
             mLocation = location;
             Log.i(TAG, "Location found");
-            Toast.makeText(mActivity, "location updated", Toast.LENGTH_SHORT).show();
         } else {
             Log.i(TAG, "Location not found");
-            Toast.makeText(mActivity, "location not updated", Toast.LENGTH_SHORT).show();
+            if (mNRequest > 5) {
+                Toast.makeText(mActivity, "location not updated", Toast.LENGTH_SHORT).show();
+            }
         }
-        if (mGoogleApiClient != null) {
+        if ((mGoogleApiClient != null) && (mNRequest > 5)) {
             mGoogleApiClient.disconnect();
             Log.i(TAG, "gms service disconnected");
         }

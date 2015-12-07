@@ -120,6 +120,7 @@ public class ForecastAdapter extends RecyclerView.Adapter<MyViewHolder<WeatherDa
         @Override
         public void bindViewHolder(WeatherData data, int position) {
             HourlyForecast forecast = data.getHourlyForecasts()[position - 1];
+
             String timeValue = ForecastConverter.getString(forecast.getTime(), mTimezone, ForecastConverter.SHORT_MODE);
             String type = (forecast.getPrecipType() != null) ? forecast.getPrecipType() : "precipitation chance";
             String precipValue = String.format("%s %%, %s",
@@ -150,7 +151,7 @@ public class ForecastAdapter extends RecyclerView.Adapter<MyViewHolder<WeatherDa
 
             ColorFilter filter2 = new LightingColorFilter(Color.BLACK, ForecastConverter.getColor(forecast.getIcon()));
             Drawable drawable2 = mContext.getResources().getDrawable(R.drawable.ic_dot);
-            if (drawable != null) {
+            if (drawable2 != null) {
                 drawable2.setColorFilter(filter2);
             }
             mIndicatorIcon.setImageDrawable(drawable2);

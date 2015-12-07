@@ -4,16 +4,53 @@ package felix.com.skydrop.model;
  * Created by fsoewito on 12/4/2015.
  */
 public class SettingData {
-    public static final int UNIT_CELSIUS = 0;
-    public static final int UNIT_FAHRENHEIT = 1;
 
-    int unit;
+    boolean mTemperatureUnit;
+    boolean mAutoUpdate;
+    boolean mWindUnit;
+    boolean mPressureUnit;
+    boolean mPaidVersion;
 
-    public int getUnit() {
-        return unit;
+    public SettingData() {
     }
 
-    public void setUnit(int unit) {
-        this.unit = unit;
+    public boolean isTemperatureUnit() {
+        return mTemperatureUnit;
+    }
+
+    public void setTemperatureUnit(boolean temperatureUnit) {
+        mTemperatureUnit = temperatureUnit;
+    }
+
+    public boolean isAutoUpdate() {
+        return mAutoUpdate;
+    }
+
+    public void setAutoUpdate(boolean autoUpdate) {
+        mAutoUpdate = autoUpdate;
+    }
+
+    public boolean isWindUnit() {
+        return mWindUnit;
+    }
+
+    public void setWindUnit(boolean windUnit) {
+        mWindUnit = windUnit;
+    }
+
+    public boolean isPressureUnit() {
+        return mPressureUnit;
+    }
+
+    public void setPressureUnit(boolean pressureUnit) {
+        mPressureUnit = pressureUnit;
+    }
+
+    public boolean isPaidVersion() {
+        return mPaidVersion;
+    }
+
+    public void setPaidVersion(boolean paidVersion) {
+        mPaidVersion = paidVersion;
     }
 }
