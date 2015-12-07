@@ -21,10 +21,10 @@
             android:id="@+id/item_label_time"
             android:layout_width="72dp"
             android:layout_height="72dp"
+            android:background="@drawable/shape_oval"
             android:gravity="center"
             android:textSize="21sp"
             android:textStyle="bold"
-            tools:background="@android:color/holo_blue_bright"
             tools:text="10 PM"/>
 
         <RelativeLayout

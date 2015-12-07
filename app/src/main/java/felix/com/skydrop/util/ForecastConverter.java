@@ -54,25 +54,50 @@ public class ForecastConverter {
     public static int getColor(String icon) {
         switch (icon) {
             case ("clear-day"):
-                return Color.YELLOW;
+                return Color.AMBER_YELLOW;
             case ("clear-night"):
-                return Color.YELLOW;
+                return Color.AMBER_YELLOW;
             case ("rain"):
-                return 0xFF03A9F4;
+                return Color.LIGHT_BLUE;
             case ("snow"):
                 return Color.GREY_LIGHT;
             case ("partly-cloudy-day"):
-                return 0xFFB6B6B6;
+                return Color.GREY;
             case ("cloudy"):
-                return 0xFFB6B6B6;
+                return Color.GREY;
             case ("partly-cloudy-night"):
-                return 0xFFB6B6B6;
+                return Color.GREY;
             case ("fog"):
-                return 0xFFB6B6B6;
+                return Color.BLUE_GREY;
             case ("sleet"):
                 return Color.GREY_LIGHT;
             default:
-                return Color.YELLOW;
+                return Color.AMBER_YELLOW;
+        }
+    }
+
+    public static int getTextColor(String icon) {
+        switch (icon) {
+            case ("clear-day"):
+                return Color.DARK_FONT;
+            case ("clear-night"):
+                return Color.DARK_FONT;
+            case ("rain"):
+                return Color.DARK_FONT;
+            case ("snow"):
+                return Color.LIGHT_FONT;
+            case ("partly-cloudy-day"):
+                return Color.DARK_FONT;
+            case ("cloudy"):
+                return Color.DARK_FONT;
+            case ("partly-cloudy-night"):
+                return Color.DARK_FONT;
+            case ("fog"):
+                return Color.LIGHT_FONT;
+            case ("sleet"):
+                return Color.DARK_FONT;
+            default:
+                return Color.DARK_FONT;
         }
     }
 

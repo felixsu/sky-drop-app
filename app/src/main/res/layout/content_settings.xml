@@ -13,4 +13,9 @@
     tools:context="felix.com.skydrop.activity.SettingsActivity"
     tools:showIn="@layout/activity_settings">
 
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:gravity="center"
+        android:text="Coming Soon ~"/>
 </RelativeLayout>

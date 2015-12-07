@@ -74,7 +74,7 @@ public class ForecastFragment extends Fragment implements MyOnItemClickListener 
     }
 
     public void initView() {
-        mForecastAdapter = new ForecastAdapter(mWeatherData);
+        mForecastAdapter = new ForecastAdapter(mActivity, mWeatherData);
         mForecastAdapter.setOnItemClickListener(this);
         mRecyclerView.setAdapter(mForecastAdapter);
 

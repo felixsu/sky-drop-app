@@ -1,5 +1,10 @@
 package felix.com.skydrop.adapter;
 
+import android.content.Context;
+import android.graphics.ColorFilter;
+import android.graphics.LightingColorFilter;
+import android.graphics.drawable.Drawable;
+import android.graphics.drawable.GradientDrawable;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -35,12 +40,14 @@ import felix.com.skydrop.viewholder.MyViewHolder;
  */
 public class ForecastAdapter extends RecyclerView.Adapter<MyViewHolder<WeatherData>> {
 
+    Context mContext;
     WeatherData mWeatherData;
     MyOnItemClickListener mOnItemClickListener;
     int mChartState = GlobalConstant.CHART_TEMP_MODE;
 
-    public ForecastAdapter(WeatherData weatherData) {
+    public ForecastAdapter(Context context, WeatherData weatherData) {
         mWeatherData = weatherData;
+        mContext = context;
     }
 
     public void setOnItemClickListener(MyOnItemClickListener onItemClickListener) {
@@ -121,18 +128,27 @@ public class ForecastAdapter extends RecyclerView.Adapter<MyViewHolder<WeatherDa
                     ForecastConverter.getString(forecast.getWindSpeed(), false, false),
                     ForecastConverter.getDirection(forecast.getWindDirection()));
 
+            ColorFilter filter = new LightingColorFilter(Color.BLACK, 0xFF3F51B5);
+            Drawable drawable = mContext.getResources().getDrawable(ForecastConverter.getIcon(forecast.getIcon()));
+            if (drawable != null) {
+                drawable.setColorFilter(filter);
+            }
+
             mTimeLabel.setText(timeValue);
-            mWeatherIcon.setImageResource(ForecastConverter.getIcon(forecast.getIcon()));
+            mWeatherIcon.setImageDrawable(drawable);
             mSummaryLabel.setText(forecast.getSummary());
             mPrecipLabel.setText(precipValue);
             mTemperatureLabel.setText(temperatureValue);
             mWindLabel.setText(windValue);
 
-            mTimeLabel.setBackgroundColor(ForecastConverter.getColor(forecast.getIcon()));
+            mTimeLabel.setTextColor(ForecastConverter.getTextColor(forecast.getIcon()));
+            ((GradientDrawable) mTimeLabel.getBackground()).setColor(ForecastConverter.getColor(forecast.getIcon()));
         }
+
     }
 
     public class ChartViewHolder extends MyViewHolder<WeatherData> implements View.OnClickListener {
+        TextView mTitleLabel;
         TextView mSummaryLabel;
         LineChart mLineChart;
         MyOnItemClickListener mListener;
@@ -140,6 +156,7 @@ public class ForecastAdapter extends RecyclerView.Adapter<MyViewHolder<WeatherDa
         public ChartViewHolder(View itemView, MyOnItemClickListener listener) {
             super(itemView);
             mListener = listener;
+            mTitleLabel = (TextView) itemView.findViewById(R.id.item_label_header_title);
             mSummaryLabel = (TextView) itemView.findViewById(R.id.item_label_hourly_summary);
             mLineChart = (LineChart) itemView.findViewById(R.id.item_chart_forecast);
             if (mLineChart != null) {
@@ -157,6 +174,7 @@ public class ForecastAdapter extends RecyclerView.Adapter<MyViewHolder<WeatherDa
 
         @Override
         public void bindViewHolder(WeatherData weatherData, int position) {
+            mTitleLabel.setText("Next 8 hours");
             mSummaryLabel.setText(weatherData.getHourSummary());
             drawChart(weatherData, GlobalConstant.CHART_TEMP_MODE);
         }
@@ -248,17 +266,22 @@ public class ForecastAdapter extends RecyclerView.Adapter<MyViewHolder<WeatherDa
             if (state == GlobalConstant.CHART_TEMP_MODE) {
                 axisLeft.setAxisMinValue((float) (minYAxisVal - 1d));
                 axisLeft.setAxisMaxValue((float) (maxYAxisVal + 1d));
+
                 axisLeft.setEnabled(true);
+                axisLeft.setAxisLineWidth(1.4f);
+                axisLeft.setDrawAxisLine(true);
+                axisLeft.setDrawGridLines(true);
             } else {
-                axisLeft.setEnabled(true);
                 axisLeft.setAxisMinValue(0f);
                 axisLeft.setAxisMaxValue(100f);
+
+                axisLeft.setEnabled(true);
+                axisLeft.setAxisLineWidth(1.4f);
                 axisLeft.setDrawAxisLine(true);
-                axisLeft.setAxisLineWidth(1f);
+                axisLeft.setDrawGridLines(false);
             }
             axisLeft.setLabelCount(6, false);
             axisLeft.setStartAtZero(false);
-            axisLeft.setDrawGridLines(false);
 
             //title
             if (state == GlobalConstant.CHART_TEMP_MODE) {
@@ -290,10 +313,9 @@ public class ForecastAdapter extends RecyclerView.Adapter<MyViewHolder<WeatherDa
             lineDataSet.setValueTextSize(12f);
             lineDataSet.setValueFormatter(formatter);
             lineDataSet.setValueTextColor(color);
-
+            lineDataSet.setDrawValues(false);
             if (drawFill) {
                 lineDataSet.setDrawCircles(false);
-                lineDataSet.setDrawValues(false);
             }
         }
 
@@ -323,4 +345,5 @@ public class ForecastAdapter extends RecyclerView.Adapter<MyViewHolder<WeatherDa
         }
 
     }
+
 }
