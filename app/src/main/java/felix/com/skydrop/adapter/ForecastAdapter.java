@@ -1,10 +1,9 @@
 package felix.com.skydrop.adapter;
 
 import android.content.Context;
-import android.graphics.ColorFilter;
-import android.graphics.LightingColorFilter;
 import android.graphics.drawable.Drawable;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -31,6 +30,7 @@ import felix.com.skydrop.listener.MyOnItemClickListener;
 import felix.com.skydrop.model.HourlyForecast;
 import felix.com.skydrop.model.WeatherData;
 import felix.com.skydrop.util.ForecastConverter;
+import felix.com.skydrop.util.OtherUtils;
 import felix.com.skydrop.viewholder.MyViewHolder;
 
 /**
@@ -81,6 +81,7 @@ public class ForecastAdapter extends RecyclerView.Adapter<MyViewHolder<WeatherDa
     }
 
     public class ForecastViewHolder extends MyViewHolder<WeatherData> implements View.OnClickListener {
+        private final String TAG = ForecastViewHolder.class.getSimpleName();
         MyOnItemClickListener mListener;
         String mTimezone;
 
@@ -131,11 +132,10 @@ public class ForecastAdapter extends RecyclerView.Adapter<MyViewHolder<WeatherDa
                     ForecastConverter.getString(forecast.getWindSpeed(), false, false),
                     ForecastConverter.getDirection(forecast.getWindDirection()));
 
-            ColorFilter filter = new LightingColorFilter(Color.BLACK, 0xFF3F51B5);
-            Drawable drawable = mContext.getResources().getDrawable(ForecastConverter.getIcon(forecast.getIcon()));
-            if (drawable != null) {
-                drawable.setColorFilter(filter);
-            }
+            int contextColor = ForecastConverter.getColor(forecast.getIcon());
+
+            Drawable drawable = OtherUtils.setTint(mContext.getResources().getDrawable(ForecastConverter.getIcon(forecast.getIcon())), contextColor);
+            Drawable drawable2 = OtherUtils.setTint(mContext.getResources().getDrawable(R.drawable.ic_dot), contextColor);
             if (timeValue.length() == 4) {
                 mTimeLabel.setText(timeValue.substring(0, 2));
                 mTimeLabelProp.setText(timeValue.substring(2, 4));
@@ -145,16 +145,12 @@ public class ForecastAdapter extends RecyclerView.Adapter<MyViewHolder<WeatherDa
             }
             mWeatherIcon.setImageDrawable(drawable);
             mSummaryLabel.setText(forecast.getSummary());
+            mSummaryLabel.setTextColor(contextColor);
             mPrecipLabel.setText(precipValue);
             mTemperatureLabel.setText(temperatureValue);
             mWindLabel.setText(windValue);
-
-            ColorFilter filter2 = new LightingColorFilter(Color.BLACK, ForecastConverter.getColor(forecast.getIcon()));
-            Drawable drawable2 = mContext.getResources().getDrawable(R.drawable.ic_dot);
-            if (drawable2 != null) {
-                drawable2.setColorFilter(filter2);
-            }
             mIndicatorIcon.setImageDrawable(drawable2);
+            Log.i(TAG, String.format("binding position %d + %s + %X", position, forecast.getIcon(), contextColor));
         }
 
     }
@@ -356,6 +352,6 @@ public class ForecastAdapter extends RecyclerView.Adapter<MyViewHolder<WeatherDa
             //notifyItemChanged(getLayoutPosition());
         }
 
-    }
 
+    }
 }

@@ -2,7 +2,7 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
               xmlns:tools="http://schemas.android.com/tools"
               android:layout_width="match_parent"
-              android:layout_height="72dp"
+              android:layout_height="48dp"
               android:orientation="horizontal">
 
     <RelativeLayout
@@ -15,8 +15,7 @@
             android:id="@+id/item_label_setting_title"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:textSize="21sp"
-            android:textStyle="bold"
+            android:textSize="18sp"
             tools:text="Title"/>
 
         <TextView
@@ -24,6 +23,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_below="@id/item_label_setting_title"
+            android:textSize="14sp"
             tools:text="Description"/>
     </RelativeLayout>
 
