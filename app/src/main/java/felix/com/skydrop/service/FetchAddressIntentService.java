@@ -7,7 +7,6 @@ import android.location.Geocoder;
 import android.location.Location;
 import android.os.Bundle;
 import android.os.ResultReceiver;
-import android.text.TextUtils;
 import android.util.Log;
 
 import java.io.IOException;
@@ -19,14 +18,13 @@ import felix.com.skydrop.constant.GeocoderConstant;
 
 /**
  * Created by fsoewito on 11/30/2015.
- *
  */
 public class FetchAddressIntentService extends IntentService {
     private static final String TAG = FetchAddressIntentService.class.getSimpleName();
 
     protected ResultReceiver mReceiver;
 
-    public FetchAddressIntentService(){
+    public FetchAddressIntentService() {
         super(TAG);
     }
 
@@ -37,12 +35,12 @@ public class FetchAddressIntentService extends IntentService {
         mReceiver = intent.getParcelableExtra(GeocoderConstant.RECEIVER);
         Location location = intent.getParcelableExtra(GeocoderConstant.LOCATION_DATA_EXTRA);
         List<Address> addresses = null;
-        try{
+        try {
             if (location != null) {
                 addresses = geocoder.getFromLocation(
                         location.getLatitude(), location.getLongitude(),
                         1);
-            }else{
+            } else {
                 addresses = null;
             }
 
@@ -52,17 +50,17 @@ public class FetchAddressIntentService extends IntentService {
         }
 
 
-        if (addresses == null || addresses.size() <1){
-            if (errorMsg.equals("")){
+        if (addresses == null || addresses.size() < 1) {
+            if (errorMsg.equals("")) {
                 errorMsg = "address not found";
                 Log.e(TAG, errorMsg);
             }
             deliverResultToReceiver(GeocoderConstant.FAILURE_RESULT, errorMsg);
-        }else{
+        } else {
             Address address = addresses.get(0);
             ArrayList<String> addressFragments = new ArrayList<>();
 
-            for (int i = 0; i< address.getMaxAddressLineIndex(); i++){
+            for (int i = 0; i < address.getMaxAddressLineIndex(); i++) {
                 addressFragments.add(address.getAddressLine(i));
             }
             Log.i(TAG, "address found");

@@ -30,7 +30,7 @@ public class DecisionFactory {
         double precipProbArray[] = new double[WeatherData.N_FORECAST];
         double tempArray[] = new double[WeatherData.N_FORECAST];
         for (int i = 0; i < WeatherData.N_FORECAST; i++) {
-            precipProbArray[i] = hourlyForecasts[i].getPrecipProbability()*100;
+            precipProbArray[i] = hourlyForecasts[i].getPrecipProbability() * 100;
             tempArray[i] = hourlyForecasts[i].getTemperature();
         }
 
@@ -64,8 +64,7 @@ public class DecisionFactory {
         if (highChanceRainFlag) {
             title = IT_WILL_BE_RAIN_TITLE;
             body = IT_WILL_BE_RAIN;
-        }
-        else if (chanceRainFlag && hotFlag) {
+        } else if (chanceRainFlag && hotFlag) {
             title = IT_MAY_BE_RAIN_TITLE;
             body = IT_MAY_BE_RAIN;
         } else if (chanceRainFlag) {
@@ -74,14 +73,14 @@ public class DecisionFactory {
         } else if (hotFlag) {
             title = IT_WILL_BE_CLEAR_TITLE;
             body = IT_WILL_BE_EXTREMELY_HOT;
-        }else if (coldFlag){
+        } else if (coldFlag) {
             title = IT_WILL_BE_CLEAR_TITLE;
             body = IT_WILL_BE_EXTREMELY_COLD;
-        }else{
+        } else {
             title = IT_WILL_BE_NOTHING_TITLE;
             body = IT_WILL_BE_CLEAR;
         }
 
-        return title+"-"+body;
+        return title + "-" + body;
     }
 }

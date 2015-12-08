@@ -7,7 +7,6 @@ import android.os.ResultReceiver;
 
 /**
  * Created by fsoewito on 11/30/2015.
- *
  */
 @SuppressLint("ParcelCreator")
 public class AddressResultReceiver extends ResultReceiver {
@@ -27,9 +26,9 @@ public class AddressResultReceiver extends ResultReceiver {
 
     @Override
     protected void onReceiveResult(int resultCode, Bundle resultData) {
-       if (mReceiver != null){
-           mReceiver.onReceiveResult(resultCode, resultData);
-       }
+        if (mReceiver != null) {
+            mReceiver.onReceiveResult(resultCode, resultData);
+        }
 
     }
 

@@ -10,6 +10,7 @@ import butterknife.Bind;
 import butterknife.ButterKnife;
 import felix.com.skydrop.R;
 import felix.com.skydrop.adapter.SettingsAdapter;
+import felix.com.skydrop.decorator.DividerItemDecoration;
 import felix.com.skydrop.factory.SettingDataFactory;
 import felix.com.skydrop.model.SettingData;
 
@@ -40,11 +41,12 @@ public class SettingsActivity extends AppCompatActivity {
             getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         }
 
-        SettingsAdapter adapter = new SettingsAdapter(mSettingData);
+        SettingsAdapter adapter = new SettingsAdapter(this, mSettingData);
         mRecyclerView.setAdapter(adapter);
         RecyclerView.LayoutManager layoutManager =
                 new LinearLayoutManager(this);
         mRecyclerView.setLayoutManager(layoutManager);
+        mRecyclerView.addItemDecoration(new DividerItemDecoration(this));
     }
 
 }

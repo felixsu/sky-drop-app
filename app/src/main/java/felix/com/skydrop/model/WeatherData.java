@@ -11,7 +11,7 @@ import felix.com.skydrop.constant.WeatherConstant;
  * store every value of weather data and some basics method to handle the data
  */
 public class WeatherData extends BaseWeather {
-    public static final int N_FORECAST = 8;
+    public static final int N_FORECAST = 6;
 
     protected boolean initialized;
     protected long mTime;

@@ -3,7 +3,6 @@ package felix.com.skydrop.adapter;
 import android.content.Context;
 import android.graphics.drawable.Drawable;
 import android.support.v7.widget.RecyclerView;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -27,7 +26,9 @@ import felix.com.skydrop.constant.GlobalConstant;
 import felix.com.skydrop.formatter.IntegerValueFormatter;
 import felix.com.skydrop.formatter.LevelValueFormatter;
 import felix.com.skydrop.listener.MyOnItemClickListener;
+import felix.com.skydrop.model.ForecastElement;
 import felix.com.skydrop.model.HourlyForecast;
+import felix.com.skydrop.model.SettingData;
 import felix.com.skydrop.model.WeatherData;
 import felix.com.skydrop.util.ForecastConverter;
 import felix.com.skydrop.util.OtherUtils;
@@ -40,12 +41,17 @@ public class ForecastAdapter extends RecyclerView.Adapter<MyViewHolder<WeatherDa
 
     Context mContext;
     WeatherData mWeatherData;
+    SettingData mSettingData;
+    ForecastElement[] mForecastElements;
+
+
     MyOnItemClickListener mOnItemClickListener;
     int mChartState = GlobalConstant.CHART_TEMP_MODE;
 
-    public ForecastAdapter(Context context, WeatherData weatherData) {
-        mWeatherData = weatherData;
+    public ForecastAdapter(Context context, WeatherData weatherData, SettingData settingData) {
         mContext = context;
+        mWeatherData = weatherData;
+        mSettingData = settingData;
     }
 
     public void setOnItemClickListener(MyOnItemClickListener onItemClickListener) {
@@ -80,6 +86,12 @@ public class ForecastAdapter extends RecyclerView.Adapter<MyViewHolder<WeatherDa
         return (mWeatherData.getHourlyForecasts().length) + 1;
     }
 
+    private ForecastElement[] generateForecastElement() {
+        ForecastElement[] elements = new ForecastElement[]{};
+
+        return elements;
+    }
+
     public class ForecastViewHolder extends MyViewHolder<WeatherData> implements View.OnClickListener {
         private final String TAG = ForecastViewHolder.class.getSimpleName();
         MyOnItemClickListener mListener;
@@ -98,7 +110,6 @@ public class ForecastAdapter extends RecyclerView.Adapter<MyViewHolder<WeatherDa
             super(itemView);
             mListener = listener;
             mTimezone = timezone;
-
             mTimeLabel = (TextView) itemView.findViewById(R.id.item_label_time);
             mWeatherIcon = (ImageView) itemView.findViewById(R.id.item_icon_forecast);
             mSummaryLabel = (TextView) itemView.findViewById(R.id.item_label_summary);
@@ -124,17 +135,17 @@ public class ForecastAdapter extends RecyclerView.Adapter<MyViewHolder<WeatherDa
 
             String timeValue = ForecastConverter.getString(forecast.getTime(), mTimezone, ForecastConverter.SHORT_MODE);
             String type = (forecast.getPrecipType() != null) ? forecast.getPrecipType() : "precipitation chance";
-            String precipValue = String.format("%s %%, %s",
+            String precipValue = String.format("%s %% %s",
                     ForecastConverter.getString(forecast.getPrecipProbability(), true, true), type);
             String temperatureValue = String.format("%s°",
-                    ForecastConverter.getString(forecast.getTemperature(), true, false));
-            String windValue = String.format("%s mps %s",
-                    ForecastConverter.getString(forecast.getWindSpeed(), false, false),
+                    ForecastConverter.temperatureConverter(forecast.getTemperature(), mSettingData.isTemperatureUnit()));
+            String windUnit = (mSettingData.isWindUnit() ? "kmh" : "mph");
+            String windValue = String.format("%s %s %s",
+                    ForecastConverter.windConverter(forecast.getWindSpeed(), mSettingData.isWindUnit()),
+                    windUnit,
                     ForecastConverter.getDirection(forecast.getWindDirection()));
 
             int contextColor = ForecastConverter.getColor(forecast.getIcon());
-
-            Drawable drawable = OtherUtils.setTint(mContext.getResources().getDrawable(ForecastConverter.getIcon(forecast.getIcon())), contextColor);
             Drawable drawable2 = OtherUtils.setTint(mContext.getResources().getDrawable(R.drawable.ic_dot), contextColor);
             if (timeValue.length() == 4) {
                 mTimeLabel.setText(timeValue.substring(0, 2));
@@ -143,22 +154,20 @@ public class ForecastAdapter extends RecyclerView.Adapter<MyViewHolder<WeatherDa
                 mTimeLabel.setText(timeValue.substring(0, 1));
                 mTimeLabelProp.setText(timeValue.substring(1, 3));
             }
-            mWeatherIcon.setImageDrawable(drawable);
+            mWeatherIcon.setImageResource(ForecastConverter.getIcon(forecast.getIcon()));
             mSummaryLabel.setText(forecast.getSummary());
-            mSummaryLabel.setTextColor(contextColor);
             mPrecipLabel.setText(precipValue);
             mTemperatureLabel.setText(temperatureValue);
             mWindLabel.setText(windValue);
             mIndicatorIcon.setImageDrawable(drawable2);
-            Log.i(TAG, String.format("binding position %d + %s + %X", position, forecast.getIcon(), contextColor));
         }
-
     }
 
     public class ChartViewHolder extends MyViewHolder<WeatherData> implements View.OnClickListener {
         TextView mTitleLabel;
         TextView mSummaryLabel;
         LineChart mLineChart;
+
         MyOnItemClickListener mListener;
 
         public ChartViewHolder(View itemView, MyOnItemClickListener listener) {
@@ -182,7 +191,7 @@ public class ForecastAdapter extends RecyclerView.Adapter<MyViewHolder<WeatherDa
 
         @Override
         public void bindViewHolder(WeatherData weatherData, int position) {
-            mTitleLabel.setText("Next 8 hours");
+            mTitleLabel.setText("Next 6 hours");
             mSummaryLabel.setText(weatherData.getHourSummary());
             drawChart(weatherData, GlobalConstant.CHART_TEMP_MODE);
         }
@@ -349,9 +358,6 @@ public class ForecastAdapter extends RecyclerView.Adapter<MyViewHolder<WeatherDa
                 mChartState = GlobalConstant.CHART_TEMP_MODE;
             }
             drawChart(mWeatherData, mChartState);
-            //notifyItemChanged(getLayoutPosition());
         }
-
-
     }
 }

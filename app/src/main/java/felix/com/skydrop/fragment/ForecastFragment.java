@@ -19,6 +19,7 @@ import felix.com.skydrop.activity.MainActivity;
 import felix.com.skydrop.adapter.ForecastAdapter;
 import felix.com.skydrop.listener.MyOnItemClickListener;
 import felix.com.skydrop.model.ApplicationData;
+import felix.com.skydrop.model.SettingData;
 import felix.com.skydrop.model.WeatherData;
 
 /**
@@ -39,6 +40,7 @@ public class ForecastFragment extends Fragment implements MyOnItemClickListener 
     ForecastAdapter mForecastAdapter;
     MainActivity mActivity;
     ApplicationData mApplicationData;
+    SettingData mSettingData;
     WeatherData mWeatherData;
     boolean created;
 
@@ -71,10 +73,11 @@ public class ForecastFragment extends Fragment implements MyOnItemClickListener 
         mActivity = (MainActivity) getActivity();
         mWeatherData = mActivity.getWeatherData();
         mApplicationData = mActivity.getApplicationData();
+        mSettingData = mActivity.getSettingData();
     }
 
     public void initView() {
-        mForecastAdapter = new ForecastAdapter(mActivity, mWeatherData);
+        mForecastAdapter = new ForecastAdapter(mActivity, mWeatherData, mSettingData);
         mForecastAdapter.setOnItemClickListener(this);
         mRecyclerView.setAdapter(mForecastAdapter);
 

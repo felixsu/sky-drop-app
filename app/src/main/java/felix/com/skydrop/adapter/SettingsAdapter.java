@@ -1,11 +1,14 @@
 package felix.com.skydrop.adapter;
 
+import android.content.Context;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.CompoundButton;
 import android.widget.Switch;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import felix.com.skydrop.R;
 import felix.com.skydrop.constant.SettingConstant;
@@ -22,8 +25,10 @@ public class SettingsAdapter extends RecyclerView.Adapter<MyViewHolder<SettingEl
 
     SettingElement[] mSettingElements;
     SettingData mSettingData;
+    Context mContext;
 
-    public SettingsAdapter(SettingData settingData) {
+    public SettingsAdapter(Context context, SettingData settingData) {
+        mContext = context;
         mSettingData = settingData;
         mSettingElements = createSettingElement(mSettingData);
     }
@@ -75,6 +80,7 @@ public class SettingsAdapter extends RecyclerView.Adapter<MyViewHolder<SettingEl
                     element.setDescriptionTrue("Unit is in mps");
                     element.setDescriptionFalse("Unit is in mph");
                     element.setValue(settingData.isWindUnit());
+                    break;
                 case 2:
                     element.setTitle("Pressure Unit");
                     element.setDescriptionTrue("Unit is in mbar");
@@ -108,16 +114,19 @@ public class SettingsAdapter extends RecyclerView.Adapter<MyViewHolder<SettingEl
         return elements;
     }
 
-    public class ActiveViewHolder extends MyViewHolder<SettingElement> {
+    public class ActiveViewHolder extends MyViewHolder<SettingElement> implements CompoundButton.OnCheckedChangeListener {
         TextView mTitleLabel;
         TextView mDescriptionLabel;
         Switch mValueSwitch;
+
 
         public ActiveViewHolder(View itemView) {
             super(itemView);
             mTitleLabel = (TextView) itemView.findViewById(R.id.item_label_setting_title);
             mDescriptionLabel = (TextView) itemView.findViewById(R.id.item_label_setting_description);
             mValueSwitch = (Switch) itemView.findViewById(R.id.item_switch_value);
+            mValueSwitch.setOnCheckedChangeListener(this);
+
         }
 
         @Override
@@ -129,6 +138,47 @@ public class SettingsAdapter extends RecyclerView.Adapter<MyViewHolder<SettingEl
                 mDescriptionLabel.setText(data.getDescriptionFalse());
             }
             mValueSwitch.setChecked(data.isValue());
+        }
+
+        @Override
+        public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+            int position = getLayoutPosition();
+            switch (position) {
+                case 0:
+                    mSettingData.setTemperatureUnit(isChecked);
+                    if (isChecked) {
+                        mDescriptionLabel.setText(mSettingElements[position].getDescriptionTrue());
+                    } else {
+                        mDescriptionLabel.setText(mSettingElements[position].getDescriptionFalse());
+                    }
+                    break;
+                case 1:
+                    mSettingData.setWindUnit(isChecked);
+                    if (isChecked) {
+                        mDescriptionLabel.setText(mSettingElements[position].getDescriptionTrue());
+                    } else {
+                        mDescriptionLabel.setText(mSettingElements[position].getDescriptionFalse());
+                    }
+                    break;
+                case 2:
+                    mSettingData.setPressureUnit(isChecked);
+                    if (isChecked) {
+                        mDescriptionLabel.setText(mSettingElements[position].getDescriptionTrue());
+                    } else {
+                        mDescriptionLabel.setText(mSettingElements[position].getDescriptionFalse());
+                    }
+                    break;
+                case 3:
+                    mSettingData.setAutoUpdate(isChecked);
+                    if (isChecked) {
+                        mDescriptionLabel.setText(mSettingElements[position].getDescriptionTrue());
+                    } else {
+                        mDescriptionLabel.setText(mSettingElements[position].getDescriptionFalse());
+                    }
+                    break;
+                default:
+                    break;
+            }
         }
     }
 
@@ -142,6 +192,8 @@ public class SettingsAdapter extends RecyclerView.Adapter<MyViewHolder<SettingEl
             mTitleLabel = (TextView) itemView.findViewById(R.id.item_label_setting_title);
             mDescriptionLabel = (TextView) itemView.findViewById(R.id.item_label_setting_description);
             mValueSwitch = (Switch) itemView.findViewById(R.id.item_switch_value);
+
+            itemView.setOnClickListener(this);
         }
 
         @Override
@@ -157,6 +209,7 @@ public class SettingsAdapter extends RecyclerView.Adapter<MyViewHolder<SettingEl
 
         @Override
         public void onClick(View v) {
+            Toast.makeText(mContext, "pressed", Toast.LENGTH_SHORT).show();
         }
     }
 

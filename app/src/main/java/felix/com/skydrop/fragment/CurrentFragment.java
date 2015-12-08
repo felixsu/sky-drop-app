@@ -4,9 +4,6 @@ package felix.com.skydrop.fragment;
 import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.Intent;
-import android.graphics.ColorFilter;
-import android.graphics.LightingColorFilter;
-import android.graphics.drawable.Drawable;
 import android.location.Location;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
@@ -51,6 +48,7 @@ import felix.com.skydrop.constant.GeocoderConstant;
 import felix.com.skydrop.constant.GlobalConstant;
 import felix.com.skydrop.constant.WeatherConstant;
 import felix.com.skydrop.model.ApplicationData;
+import felix.com.skydrop.model.SettingData;
 import felix.com.skydrop.model.WeatherData;
 import felix.com.skydrop.receiver.AddressResultReceiver;
 import felix.com.skydrop.service.FetchAddressIntentService;
@@ -71,6 +69,8 @@ public class CurrentFragment extends Fragment
     private static final int REQUEST_CODE_RECOVER_PLAY_SERVICES = 200;
     WeatherData mWeatherData;
     ApplicationData mApplicationData;
+    SettingData mSettingData;
+
     @Bind(R.id.layout_current_weather)
     SwipeRefreshLayout mRefreshLayout;
     //component
@@ -200,8 +200,9 @@ public class CurrentFragment extends Fragment
         mResultReceiver = new AddressResultReceiver(new Handler());
         mResultReceiver.setReceiver(this);
 
-        mWeatherData = mActivity.getWeatherData();
+        mSettingData = mActivity.getSettingData();
         mApplicationData = mActivity.getApplicationData();
+        mWeatherData = mActivity.getWeatherData();
         mNRequest = 0;
     }
 
@@ -220,15 +221,10 @@ public class CurrentFragment extends Fragment
             Log.d(TAG, "forecastFragment is created and updated");
             forecastFragment.updateDisplay();
         }
-        ColorFilter filter = new LightingColorFilter(Color.BLACK, 0xFF3F51B5);
-        Drawable drawable = mActivity.getResources().getDrawable(ForecastConverter.getIcon(mWeatherData.getIcon()));
-        if (drawable != null) {
-            drawable.setColorFilter(filter);
-        }
 
         if (mWeatherData.isInitialized()) {
-            mIconWeather.setImageDrawable(drawable);
-            mTemperatureLabel.setText(ForecastConverter.getString(mWeatherData.getTemperature(), true, false));
+            mIconWeather.setImageResource(ForecastConverter.getIcon(mWeatherData.getIcon()));
+            mTemperatureLabel.setText(ForecastConverter.temperatureConverter(mWeatherData.getTemperature(), mSettingData.isTemperatureUnit()));
             mAddressLabel.setText(mApplicationData.getAddress());
             String time = ForecastConverter.getString(mWeatherData.getTime(),
                     mWeatherData.getTimezone(), ForecastConverter.LONG_MODE);
@@ -237,18 +233,21 @@ public class CurrentFragment extends Fragment
 
             mSummaryLabel.setText(mWeatherData.getSummary());
             mRealFeelLabel.setText(String.format("Feels like : %s°",
-                    ForecastConverter.getString(mWeatherData.getApparentTemperature(), true, false)));
+                    ForecastConverter.temperatureConverter(mWeatherData.getApparentTemperature(), mSettingData.isTemperatureUnit())));
             //todo get uv index or remove it :(
             mUvIndexLabel.setText("NA");
             mHumidityLabel.setText(String.format
                     ("%s %%", ForecastConverter.getString(mWeatherData.getHumidity(), true, true)));
             mPrecipitationLabel.setText(String.format
                     ("%s %%", ForecastConverter.getString(mWeatherData.getPrecipProbability(), true, true)));
-            mPressureLabel.setText(String.format
-                    ("%s mbar", ForecastConverter.getString(mWeatherData.getPressure(), false, false)));
 
+            String pressureUnit = (mSettingData.isPressureUnit() ? "bar" : "cmHg");
+            mPressureLabel.setText(String.format
+                    ("%s %s", ForecastConverter.pressureConverter(mWeatherData.getPressure(), mSettingData.isPressureUnit()), pressureUnit));
+
+            String windUnit = (mSettingData.isWindUnit() ? "kmh" : "mph");
             mWindLabel.setText(String.format
-                    ("%s mps", ForecastConverter.getString(mWeatherData.getWindSpeed(), false, false)));
+                    ("%s %s", ForecastConverter.windConverter(mWeatherData.getWindSpeed(), mSettingData.isWindUnit()), windUnit));
             mWindDirectionLabel.setText(ForecastConverter.getDirection(mWeatherData.getWindDirection()));
         } else {
             mAddressLabel.setText("Location NA");

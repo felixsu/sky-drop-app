@@ -10,7 +10,6 @@ import felix.com.skydrop.R;
 
 /**
  * Created by fsoewito on 11/26/2015.
- *
  */
 public class AlertDialogFragment extends DialogFragment {
 

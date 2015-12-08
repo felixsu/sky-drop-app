@@ -14,8 +14,8 @@ public class Color {
     public static final int WHITE = 0xFFFFFFFF;
     public static final int GREY_LIGHT = 0xFFF5F5F5;
     public static final int GREY_DARK = 0xFFE0E0E0;
-    public static final int PRIMARY_COLOR = 0xFF3F51B5;
-    public static final int ACCENT_COLOR = 0xFFFF4081;
+    public static final int PRIMARY_COLOR = 0xFF2196F3;
+    public static final int ACCENT_COLOR = 0xFFFFC107;
 
     //material
     public static final int MATERIAL_BLUE = 0xFF2196F3;
