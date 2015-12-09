@@ -12,6 +12,7 @@
         android:id="@+id/scrollViewContainer"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:background="@color/greyWhiteDark"
         android:overScrollMode="ifContentScrolls"
         app:paddingEnd="@dimen/activity_vertical_margin">
 
@@ -21,15 +22,16 @@
             android:layout_marginBottom="@dimen/activity_vertical_margin"
             android:layout_marginLeft="@dimen/card_margin"
             android:layout_marginRight="@dimen/card_margin"
-            android:layout_marginTop="@dimen/card_margin"
             android:background="@color/greyWhiteDark">
 
             <RelativeLayout
                 android:id="@+id/cardContainer"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:background="@drawable/shape_card"
-                android:foreground="?android:attr/selectableItemBackground"
+                android:layout_marginBottom="@dimen/card_halfMargin"
+                android:layout_marginTop="@dimen/card_halfMargin"
+                android:background="@drawable/card_clickable_bg"
+                android:clickable="true"
                 android:translationZ="@dimen/card_elevation">
 
                 <RelativeLayout
@@ -131,9 +133,10 @@
                 android:layout_height="wrap_content"
                 android:layout_below="@id/cardContainer"
                 android:layout_marginBottom="@dimen/activity_vertical_margin"
-                android:layout_marginTop="@dimen/card_margin"
-                android:background="@drawable/shape_card"
-                android:translationZ="4dp">
+                android:layout_marginTop="@dimen/card_halfMargin"
+                android:background="@drawable/card_clickable_bg"
+                android:clickable="true"
+                android:translationZ="@dimen/card_elevation">
 
                 <RelativeLayout
                     android:id="@+id/parameterContainer"

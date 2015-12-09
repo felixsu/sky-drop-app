@@ -14,10 +14,8 @@ import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
-import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.LinearLayout;
-import android.widget.Toast;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -25,6 +23,7 @@ import java.util.Date;
 import felix.com.skydrop.R;
 import felix.com.skydrop.adapter.SectionsPagerAdapter;
 import felix.com.skydrop.constant.ApplicationDataConstant;
+import felix.com.skydrop.constant.GlobalConstant;
 import felix.com.skydrop.constant.SettingConstant;
 import felix.com.skydrop.constant.WeatherConstant;
 import felix.com.skydrop.factory.ApplicationDataFactory;
@@ -175,34 +174,29 @@ public class MainActivity extends AppCompatActivity
     }
 
     @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        getMenuInflater().inflate(R.menu.main, menu);
-        return true;
-    }
-
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        int id = item.getItemId();
-        if (id == R.id.action_refresh) {
-            Toast.makeText(this, "Refresh Pressed", Toast.LENGTH_SHORT).show();
-            return true;
-        }
-        return super.onOptionsItemSelected(item);
-    }
-
-    @Override
     public boolean onNavigationItemSelected(MenuItem item) {
         int id = item.getItemId();
 
         if (id == R.id.nav_setting) {
             Intent intent = new Intent(this, SettingsActivity.class);
-            startActivity(intent);
+            intent.putExtra(SettingConstant.KEY, mSettingData);
+            startActivityForResult(intent, GlobalConstant.SETTING_REQUEST_CODE);
         } else if (id == R.id.nav_info) {
             showInfo();
         }
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         drawer.closeDrawer(GravityCompat.START);
         return true;
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        Log.d(TAG, String.format("on activity result with request code %d", resultCode));
+        if (resultCode == RESULT_OK) {
+            Log.d(TAG, "result ok");
+            mSettingData = (SettingData) data.getSerializableExtra(SettingConstant.KEY);
+            Log.d(TAG, mSettingData.toString());
+        }
     }
 
     //etc

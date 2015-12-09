@@ -15,6 +15,8 @@ import felix.com.skydrop.fragment.ForecastFragment;
  * Created by fsoewito on 12/4/2015.
  */
 public class SectionsPagerAdapter extends FragmentStatePagerAdapter {
+    public static final String TAG = SectionsPagerAdapter.class.getSimpleName();
+
     private Map<Integer, Integer> mIdMapper;
 
     public SectionsPagerAdapter(FragmentManager fm) {

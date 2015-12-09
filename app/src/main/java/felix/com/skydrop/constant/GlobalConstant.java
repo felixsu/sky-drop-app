@@ -5,6 +5,8 @@ package felix.com.skydrop.constant;
  * global constant
  */
 public class GlobalConstant {
+    public static final int SETTING_REQUEST_CODE = 100;
+
     public static final int CURRENT_FRAGMENT_INDEX = 0;
     public static final int FORECAST_FRAGMENT_INDEX = 1;
     public static final int CHART_TEMP_MODE = 0;

@@ -1,9 +1,11 @@
 package felix.com.skydrop.model;
 
+import java.io.Serializable;
+
 /**
  * Created by fsoewito on 12/4/2015.
  */
-public class SettingData {
+public class SettingData implements Serializable {
 
     boolean mTemperatureUnit;
     boolean mAutoUpdate;
@@ -52,5 +54,15 @@ public class SettingData {
 
     public void setPaidVersion(boolean paidVersion) {
         mPaidVersion = paidVersion;
+    }
+
+    @Override
+    public String toString() {
+        return String.format("%s, %s, %s, %s, %s",
+                String.valueOf(mTemperatureUnit),
+                String.valueOf(mAutoUpdate),
+                String.valueOf(mWindUnit),
+                String.valueOf(mPressureUnit),
+                String.valueOf(mPaidVersion));
     }
 }

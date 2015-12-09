@@ -144,9 +144,9 @@ public class ForecastConverter {
 
     public static String pressureConverter(double pressure, boolean isSi) {
         if (!isSi) {
-            return getString(pressure / 1000, false, false);
+            return getString(pressure * 760 / 1000, false, false);
         }
-        return getString(pressure * 760 / 1000, false, false);
+        return getString(pressure / 1000, false, false);
     }
 
 }

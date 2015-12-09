@@ -20,6 +20,8 @@ import felix.com.skydrop.viewholder.MyViewHolder;
  * Created by fsoewito on 12/7/2015.
  */
 public class SettingsAdapter extends RecyclerView.Adapter<MyViewHolder<SettingElement>> {
+    public static final String TAG = SettingsAdapter.class.getSimpleName();
+
     private static final int EDITABLE = 0;
     private static final int PASSIVE = 1;
 
@@ -101,9 +103,9 @@ public class SettingsAdapter extends RecyclerView.Adapter<MyViewHolder<SettingEl
                     element.setEditable(false);
                     break;
                 case 5:
-                    element.setTitle("Version");
-                    element.setDescriptionTrue("1.4");
-                    element.setDescriptionFalse("1.4");
+                    element.setTitle("Current Version");
+                    element.setDescriptionTrue("v 1.5");
+                    element.setDescriptionFalse("v 1.5");
                     element.setEditable(false);
                     break;
                 default:
@@ -179,6 +181,7 @@ public class SettingsAdapter extends RecyclerView.Adapter<MyViewHolder<SettingEl
                 default:
                     break;
             }
+            mSettingData.toString();
         }
     }
 
