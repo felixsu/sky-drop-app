@@ -79,14 +79,14 @@ public class SettingsAdapter extends RecyclerView.Adapter<MyViewHolder<SettingEl
                     break;
                 case 1:
                     element.setTitle("Wind Speed Unit");
-                    element.setDescriptionTrue("Unit is in mps");
+                    element.setDescriptionTrue("Unit is in kmh");
                     element.setDescriptionFalse("Unit is in mph");
                     element.setValue(settingData.isWindUnit());
                     break;
                 case 2:
                     element.setTitle("Pressure Unit");
-                    element.setDescriptionTrue("Unit is in mbar");
-                    element.setDescriptionFalse("Unit is in atm");
+                    element.setDescriptionTrue("Unit is in bar");
+                    element.setDescriptionFalse("Unit is in mmHg");
                     element.setValue(settingData.isPressureUnit());
                     break;
                 case 3:

@@ -29,6 +29,7 @@ import felix.com.skydrop.constant.WeatherConstant;
 import felix.com.skydrop.factory.ApplicationDataFactory;
 import felix.com.skydrop.factory.SettingDataFactory;
 import felix.com.skydrop.factory.WeatherFactory;
+import felix.com.skydrop.fragment.CurrentFragment;
 import felix.com.skydrop.fragment.InfoDialogFragment;
 import felix.com.skydrop.model.ApplicationData;
 import felix.com.skydrop.model.SettingData;
@@ -194,7 +195,10 @@ public class MainActivity extends AppCompatActivity
         Log.d(TAG, String.format("on activity result with request code %d", resultCode));
         if (resultCode == RESULT_OK) {
             Log.d(TAG, "result ok");
-            mSettingData = (SettingData) data.getSerializableExtra(SettingConstant.KEY);
+            SettingData settingData = (SettingData) data.getSerializableExtra(SettingConstant.KEY);
+            mSettingData.update(settingData);
+            CurrentFragment currentFragment = (CurrentFragment) mSectionsPagerAdapter.getFragment(GlobalConstant.CURRENT_FRAGMENT_INDEX);
+            currentFragment.updateDisplay();
             Log.d(TAG, mSettingData.toString());
         }
     }

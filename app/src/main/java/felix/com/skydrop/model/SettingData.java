@@ -7,11 +7,11 @@ import java.io.Serializable;
  */
 public class SettingData implements Serializable {
 
-    boolean mTemperatureUnit;
-    boolean mAutoUpdate;
-    boolean mWindUnit;
-    boolean mPressureUnit;
-    boolean mPaidVersion;
+    private boolean mTemperatureUnit;
+    private boolean mAutoUpdate;
+    private boolean mWindUnit;
+    private boolean mPressureUnit;
+    private boolean mPaidVersion;
 
     public SettingData() {
     }
@@ -54,6 +54,14 @@ public class SettingData implements Serializable {
 
     public void setPaidVersion(boolean paidVersion) {
         mPaidVersion = paidVersion;
+    }
+
+    public void update(SettingData settingData) {
+        mAutoUpdate = settingData.isAutoUpdate();
+        mWindUnit = settingData.isWindUnit();
+        mPressureUnit = settingData.isPressureUnit();
+        mPaidVersion = settingData.isPaidVersion();
+        mTemperatureUnit = settingData.isTemperatureUnit();
     }
 
     @Override

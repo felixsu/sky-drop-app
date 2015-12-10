@@ -17,7 +17,7 @@ import felix.com.skydrop.fragment.ForecastFragment;
 public class SectionsPagerAdapter extends FragmentStatePagerAdapter {
     public static final String TAG = SectionsPagerAdapter.class.getSimpleName();
 
-    private Map<Integer, Integer> mIdMapper;
+    private Map<Integer, Fragment> mIdMapper;
 
     public SectionsPagerAdapter(FragmentManager fm) {
         super(fm);
@@ -27,7 +27,7 @@ public class SectionsPagerAdapter extends FragmentStatePagerAdapter {
     @Override
     public Object instantiateItem(ViewGroup container, int position) {
         Fragment fragment = (Fragment) super.instantiateItem(container, position);
-        mIdMapper.put(position, fragment.getId());
+        mIdMapper.put(position, fragment);
         return fragment;
     }
 
@@ -54,11 +54,11 @@ public class SectionsPagerAdapter extends FragmentStatePagerAdapter {
         }
     }
 
-    public int getId(int position) {
+    public Fragment getFragment(int position) {
         if (mIdMapper != null) {
             return mIdMapper.get(position);
         } else {
-            return 0;
+            return null;
         }
     }
 }

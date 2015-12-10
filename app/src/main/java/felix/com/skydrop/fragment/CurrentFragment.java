@@ -213,10 +213,9 @@ public class CurrentFragment extends Fragment
     }
 
     @SuppressLint("SetTextI18n")
-    protected void updateDisplay() {
+    public void updateDisplay() {
         Log.i(TAG, "entering update display");
-        ForecastFragment forecastFragment = (ForecastFragment) mActivity.getSupportFragmentManager()
-                .findFragmentById(mSectionsPagerAdapter.getId(GlobalConstant.FORECAST_FRAGMENT_INDEX));
+        ForecastFragment forecastFragment = (ForecastFragment) mSectionsPagerAdapter.getFragment(GlobalConstant.FORECAST_FRAGMENT_INDEX);
         if (forecastFragment != null && forecastFragment.isCreated()) {
             Log.d(TAG, "forecastFragment is created and updated");
             forecastFragment.updateDisplay();
