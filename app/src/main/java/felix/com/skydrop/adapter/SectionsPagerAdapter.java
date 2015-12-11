@@ -3,6 +3,7 @@ package felix.com.skydrop.adapter;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentStatePagerAdapter;
+import android.util.Log;
 import android.view.ViewGroup;
 
 import java.util.HashMap;
@@ -28,6 +29,7 @@ public class SectionsPagerAdapter extends FragmentStatePagerAdapter {
     public Object instantiateItem(ViewGroup container, int position) {
         Fragment fragment = (Fragment) super.instantiateItem(container, position);
         mIdMapper.put(position, fragment);
+        Log.d(TAG, "fragment instantiated " + position);
         return fragment;
     }
 

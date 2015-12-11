@@ -114,16 +114,8 @@ public class CurrentFragment extends Fragment
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
-        Log.i(TAG, "entering on create");
+        Log.d(TAG, "[LIFECYCLE] entering on create");
         super.onCreate(savedInstanceState);
-        initData();
-        if (savedInstanceState != null) {
-            loadState(savedInstanceState);
-        }
-        if (checkGooglePlayServices()) {
-            Log.i(TAG, "gms available");
-            buildGoogleApiClient();
-        }
     }
 
     private void loadState(Bundle savedInstanceState) {
@@ -133,21 +125,37 @@ public class CurrentFragment extends Fragment
     @Nullable
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        Log.i(TAG, "entering on create view");
+        Log.d(TAG, "[LIFECYCLE] entering on create view");
         mLayout = inflater.inflate(R.layout.fragment_current_weather, container, false);
         ButterKnife.bind(this, mLayout);
+        initData();
+        if (savedInstanceState != null) {
+            loadState(savedInstanceState);
+        }
+        if (checkGooglePlayServices()) {
+            Log.i(TAG, "gms available");
+            buildGoogleApiClient();
+        }
         initView();
         return mLayout;
     }
 
     @Override
+    public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
+        Log.d(TAG, "[LIFECYCLE] entering on on Vew Created");
+        super.onViewCreated(view, savedInstanceState);
+    }
+
+    @Override
     public void onStart() {
-        Log.i(TAG, "entering on start");
+        Log.d(TAG, "[LIFECYCLE] entering on start");
         super.onStart();
+        updateDisplay();
     }
 
     @Override
     public void onResume() {
+        Log.d(TAG, "[LIFECYCLE] entering on resume");
         if (mResultReceiver.getReceiver() == null) {
             mResultReceiver.setReceiver(this);
         }
@@ -159,13 +167,14 @@ public class CurrentFragment extends Fragment
 
     @Override
     public void onSaveInstanceState(Bundle outState) {
+        Log.d(TAG, "[LIFECYCLE] entering on saved instance");
         super.onSaveInstanceState(outState);
         outState.putBoolean(KEY_REQUEST_LOCATION_STATE, mRequestingLocation);
     }
 
     @Override
     public void onPause() {
-        Log.i(TAG, "entering on pause");
+        Log.i(TAG, "[LIFECYCLE] entering on pause");
         if (mResultReceiver.getReceiver() != null) {
             mResultReceiver.setReceiver(null);
         }
@@ -177,7 +186,7 @@ public class CurrentFragment extends Fragment
 
     @Override
     public void onStop() {
-        Log.i(TAG, "entering on stop");
+        Log.i(TAG, "[LIFECYCLE] entering on stop");
         super.onStop();
     }
 
@@ -197,6 +206,9 @@ public class CurrentFragment extends Fragment
         Log.i(TAG, "entering init Data");
         mActivity = (MainActivity) getActivity();
         mSectionsPagerAdapter = mActivity.getSectionsPagerAdapter();
+        if (mSectionsPagerAdapter == null) {
+            Log.w(TAG, "mSectionPagerAdapter null");
+        }
         mResultReceiver = new AddressResultReceiver(new Handler());
         mResultReceiver.setReceiver(this);
 
@@ -207,7 +219,6 @@ public class CurrentFragment extends Fragment
     }
 
     protected void initView() {
-        updateDisplay();
         mRefreshLayout.setOnRefreshListener(this);
         mRefreshLayout.setColorSchemeColors(Color.RED, Color.BLUE, Color.YELLOW, Color.GREEN);
     }

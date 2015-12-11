@@ -15,10 +15,6 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.MenuItem;
-import android.widget.LinearLayout;
-
-import java.text.SimpleDateFormat;
-import java.util.Date;
 
 import felix.com.skydrop.R;
 import felix.com.skydrop.adapter.SectionsPagerAdapter;
@@ -29,7 +25,6 @@ import felix.com.skydrop.constant.WeatherConstant;
 import felix.com.skydrop.factory.ApplicationDataFactory;
 import felix.com.skydrop.factory.SettingDataFactory;
 import felix.com.skydrop.factory.WeatherFactory;
-import felix.com.skydrop.fragment.CurrentFragment;
 import felix.com.skydrop.fragment.InfoDialogFragment;
 import felix.com.skydrop.model.ApplicationData;
 import felix.com.skydrop.model.SettingData;
@@ -39,13 +34,12 @@ public class MainActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener {
 
     private static final String TAG = MainActivity.class.getSimpleName();
-
+    boolean mFromActivityResult;
     //view
     private DrawerLayout mDrawer;
     private FragmentManager mFragmentManager;
     private ViewPager mViewPager;
     private SectionsPagerAdapter mSectionsPagerAdapter;
-
     //data
     private WeatherData mWeatherData;
     private ApplicationData mApplicationData;
@@ -69,11 +63,12 @@ public class MainActivity extends AppCompatActivity
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        Log.d(TAG, "entering on create");
+        Log.d(TAG, "[LIFECYCLE] entering on create");
         super.onCreate(savedInstanceState);
+        Log.d(TAG, "super on create called");
+        initField();
         setContentView(R.layout.activity_main);
         initView();
-        initField();
     }
 
     private void initView() {
@@ -90,8 +85,6 @@ public class MainActivity extends AppCompatActivity
         NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
 
-        mFragmentManager = getSupportFragmentManager();
-        mSectionsPagerAdapter = new SectionsPagerAdapter(mFragmentManager);
         mViewPager = (ViewPager) findViewById(R.id.view_pager);
         mViewPager.setAdapter(mSectionsPagerAdapter);
 
@@ -116,33 +109,32 @@ public class MainActivity extends AppCompatActivity
             mSettingData = SettingDataFactory.getInstance();
         }
 
+        mFragmentManager = getSupportFragmentManager();
+        mSectionsPagerAdapter = new SectionsPagerAdapter(mFragmentManager);
+        Log.d(TAG, "section pager adapter created");
+        if (mSectionsPagerAdapter == null) {
+            Log.w(TAG, "section pager adapter null");
+        }
+        mFromActivityResult = false;
+
     }
 
     @Override
     protected void onStart() {
-        Log.d(TAG, "entering on start");
+        Log.d(TAG, "[LIFECYCLE] entering on start");
         super.onStart();
-        long time = System.currentTimeMillis();
-        String currentHourString = new SimpleDateFormat("hh").format(new Date(time));
-        int currentHour = Integer.parseInt(currentHourString);
-        LinearLayout navBarHeaderContainer = (LinearLayout) mDrawer.findViewById(R.id.navBarHeaderContainer);
-        if (navBarHeaderContainer != null) {
-            Log.i(TAG, "header not null");
-            if (currentHour > 0 && currentHour < 6) {
-                navBarHeaderContainer.setBackgroundResource(R.drawable.head_paper_dawn);
-            } else if (currentHour >= 6 && currentHour < 18) {
-                navBarHeaderContainer.setBackgroundResource(R.drawable.head_paper_sunny);
-            } else {
-                navBarHeaderContainer.setBackgroundResource(R.drawable.head_paper_dawn);
-            }
-        } else {
-            Log.i(TAG, "header null");
-        }
+    }
+
+    @Override
+    protected void onResume() {
+        Log.d(TAG, "[LIFECYCLE] entering on resume");
+        super.onResume();
+        mFromActivityResult = false;
     }
 
     @Override
     protected void onPause() {
-        Log.d(TAG, "entering on pause");
+        Log.d(TAG, "[LIFECYCLE] entering on pause");
         getApplicationData().setInitialized(true); //means all variable have its initial value
         SharedPreferences.Editor applicationDataEditor = getSharedPreferences(ApplicationDataConstant.KEY, Context.MODE_PRIVATE).edit();
         SharedPreferences.Editor settingDataEditor = getSharedPreferences(SettingConstant.KEY, Context.MODE_PRIVATE).edit();
@@ -165,7 +157,7 @@ public class MainActivity extends AppCompatActivity
 
     @Override
     public void onBackPressed() {
-        Log.d(TAG, "entering on back pressed");
+        Log.d(TAG, "[LIFECYCLE] entering on back pressed");
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         if (drawer.isDrawerOpen(GravityCompat.START)) {
             drawer.closeDrawer(GravityCompat.START);
@@ -192,13 +184,13 @@ public class MainActivity extends AppCompatActivity
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        Log.d(TAG, "[LIFECYCLE] entering on activity result");
         Log.d(TAG, String.format("on activity result with request code %d", resultCode));
         if (resultCode == RESULT_OK) {
+            mFromActivityResult = true;
             Log.d(TAG, "result ok");
             SettingData settingData = (SettingData) data.getSerializableExtra(SettingConstant.KEY);
             mSettingData.update(settingData);
-            CurrentFragment currentFragment = (CurrentFragment) mSectionsPagerAdapter.getFragment(GlobalConstant.CURRENT_FRAGMENT_INDEX);
-            currentFragment.updateDisplay();
             Log.d(TAG, mSettingData.toString());
         }
     }

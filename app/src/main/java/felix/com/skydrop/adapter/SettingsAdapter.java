@@ -212,7 +212,7 @@ public class SettingsAdapter extends RecyclerView.Adapter<MyViewHolder<SettingEl
 
         @Override
         public void onClick(View v) {
-            Toast.makeText(mContext, "pressed", Toast.LENGTH_SHORT).show();
+            Toast.makeText(mContext, "pressed " + getLayoutPosition(), Toast.LENGTH_SHORT).show();
         }
     }
 
